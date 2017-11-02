@@ -1,7 +1,10 @@
 <template>
   <div class="hello">
     <div class="">
-      User {{ $route.params.senderID }}
+      Email <input type="text" name="email" value="" v-model="email">
+      <button type="button" name="button" @click="pushdata()">Submit</button>
+      <!-- User {{ $route.params.senderID }} -->
+
     </div>
   </div>
 </template>
@@ -11,7 +14,12 @@ export default {
   name: 'HelloWorld',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App'
+      email: ''
+    }
+  },
+  methods: {
+    pushdata: function () {
+      this.email = 'a'
     }
   }
 }
