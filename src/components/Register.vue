@@ -1,7 +1,7 @@
 <template>
   <div class="hello">
     <div class="">
-      User {{ $route.params.id }}
+      User {{ $route.params.senderID }}
     </div>
   </div>
 </template>
