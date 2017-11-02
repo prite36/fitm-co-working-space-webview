@@ -10,6 +10,17 @@
 </template>
 
 <script>
+import firebase from 'firebase'
+var config = {
+  apiKey: 'AIzaSyCu1lysb6zuhr9NRzYY_y34BkcPQUGudBs',
+  authDomain: 'test-code-app-2-open-app-more.firebaseapp.com',
+  databaseURL: 'https://test-code-app-2-open-app-more.firebaseio.com',
+  projectId: 'test-code-app-2-open-app-more',
+  storageBucket: 'test-code-app-2-open-app-more.appspot.com',
+  messagingSenderId: '40249033052'
+}
+firebase.initializeApp(config)
+var db = firebase.database()
 export default {
   name: 'HelloWorld',
   data () {
@@ -19,7 +30,9 @@ export default {
   },
   methods: {
     pushdata: function () {
-      this.email = 'a'
+      db.ref('profile/').child(this.$route.params.status).child(this.$route.params.senderID).set({
+        email: this.email
+      })
     }
   }
 }
