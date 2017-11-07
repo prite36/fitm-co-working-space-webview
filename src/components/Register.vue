@@ -1,37 +1,50 @@
 <template>
   <div class="hello">
     <div class="">
+      Name <input type="text" name="name" value="" v-model="name">
       Email <input type="text" name="email" value="" v-model="email">
-      <button type="button" name="button" @click="pushdata()">Submit</button>
-      <!-- User {{ $route.params.senderID }} -->
-
+      <button type="button" name="button" @click="postPost()">Submit</button>
     </div>
   </div>
 </template>
 
 <script>
 import firebase from 'firebase'
+import axios from 'axios'
 var config = {
-  apiKey: 'AIzaSyCu1lysb6zuhr9NRzYY_y34BkcPQUGudBs',
-  authDomain: 'test-code-app-2-open-app-more.firebaseapp.com',
-  databaseURL: 'https://test-code-app-2-open-app-more.firebaseio.com',
-  projectId: 'test-code-app-2-open-app-more',
-  storageBucket: 'test-code-app-2-open-app-more.appspot.com',
-  messagingSenderId: '40249033052'
+  apiKey: 'AIzaSyAE2rQQye4hlRpDqAWirvyaaCExiaWA8DY',
+  authDomain: 'fitm-coworkingspace.firebaseapp.com',
+  databaseURL: 'https://fitm-coworkingspace.firebaseio.com',
+  projectId: 'fitm-coworkingspace',
+  storageBucket: 'fitm-coworkingspace.appspot.com',
+  messagingSenderId: '181239315787'
 }
 firebase.initializeApp(config)
 var db = firebase.database()
+console.log(db)
 export default {
   name: 'HelloWorld',
   data () {
     return {
+      name: '',
       email: ''
     }
   },
   methods: {
-    pushdata: function () {
-      db.ref('profile/').child(this.$route.params.status).child(this.$route.params.senderID).set({
-        email: this.email
+    postPost () {
+      axios.post(`https://fitmcoworkingspace.me/externalregister`, {
+        body: {
+          status: this.$route.params.status,
+          senderID: this.$route.params.senderID,
+          name: this.name,
+          email: this.email
+        }
+      })
+      .then(response => {
+        console.log(response)
+      })
+      .catch(error => {
+        console.log(error)
       })
     }
   }
