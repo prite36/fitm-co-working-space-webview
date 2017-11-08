@@ -50,17 +50,17 @@
 </template>
 
 <script>
-// import firebase from 'firebase'
+import firebase from 'firebase'
 import axios from 'axios'
-// var config = {
-//   apiKey: 'AIzaSyAE2rQQye4hlRpDqAWirvyaaCExiaWA8DY',
-//   authDomain: 'fitm-coworkingspace.firebaseapp.com',
-//   databaseURL: 'https://fitm-coworkingspace.firebaseio.com',
-//   projectId: 'fitm-coworkingspace',
-//   storageBucket: 'fitm-coworkingspace.appspot.com',
-//   messagingSenderId: '181239315787'
-// }
-// firebase.initializeApp(config)
+var config = {
+  apiKey: 'AIzaSyAE2rQQye4hlRpDqAWirvyaaCExiaWA8DY',
+  authDomain: 'fitm-coworkingspace.firebaseapp.com',
+  databaseURL: 'https://fitm-coworkingspace.firebaseio.com',
+  projectId: 'fitm-coworkingspace',
+  storageBucket: 'fitm-coworkingspace.appspot.com',
+  messagingSenderId: '181239315787'
+}
+firebase.initializeApp(config)
 // var db = firebase.database()
 export default {
   name: 'Register',
@@ -81,7 +81,7 @@ export default {
         body: {
           status: this.$route.params.status,
           senderID: this.$route.params.senderID,
-          firstName: data.body.firstName,
+          firstName: this.firstName,
           lastName: this.lastName,
           userName: this.userName,
           email: this.email,
