@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-
+    <div class="field">
       <label class="label">First Name</label>
       <input class="input" type="text" v-model="firstName" required>
       <br><br>
@@ -32,9 +32,7 @@
       <center>
       <button class="button is-link" @click="postPost()">Submit</button>
       </center>
-
-  <!-- </div> -->
-<!-- </div> -->
+    </div>
   </div>
 </template>
 
@@ -96,5 +94,6 @@ export default {
 }
 .label {
   font-size: 16px;
+  text-align: left;
 }
 </style>
