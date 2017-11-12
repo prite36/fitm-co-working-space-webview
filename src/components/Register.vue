@@ -1,22 +1,11 @@
 <template>
   <div class="hello">
-    <!-- <div class="inputregister">
-      Name <input type="text" name="name" value="" v-model="name">
-      <br>
-      Email <input type="text" name="email" value="" v-model="email">
-      <button type="button" name="button" @click="postPost()">Submit</button>
-    </div> -->
-<!-- <div class="field"> -->
-  <!-- <div class="control has-icons-left has-icons-right"> -->
 
       <label class="label">First Name</label>
       <input class="input" type="text" v-model="firstName" required>
       <br><br>
       <label class="label">Last Name</label>
       <input class="input" type="text" v-model="lastName" required>
-      <br><br>
-      <label class="label">Username</label>
-      <input class="input" type="text" v-model="userName" required>
       <br><br>
       <label class="label">Email</label>
       <input class="input" type="text" placeholder="example@mail.com" v-model="email" required>
@@ -68,7 +57,6 @@ export default {
     return {
       firstName: '',
       lastName: '',
-      userName: '',
       email: '',
       phoneNumber: '',
       birtday: '',
@@ -83,7 +71,6 @@ export default {
           senderID: this.$route.params.senderID,
           firstName: this.firstName,
           lastName: this.lastName,
-          userName: this.userName,
           email: this.email,
           phoneNumber: this.phoneNumber,
           birtday: this.birtday,
