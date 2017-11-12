@@ -6,9 +6,9 @@
       Email <input type="text" name="email" value="" v-model="email">
       <button type="button" name="button" @click="postPost()">Submit</button>
     </div> -->
-<div class="field">
-  <div class="control has-icons-left has-icons-right">
-    <form >
+<!-- <div class="field"> -->
+  <!-- <div class="control has-icons-left has-icons-right"> -->
+
       <label class="label">First Name</label>
       <input class="input" type="text" v-model="firstName" required>
       <br><br>
@@ -31,11 +31,11 @@
       <div class="field">
         <div class="control">
           <label class="radio">
-            <input type="radio" v-model="gender">
+            <input type="radio" v-model="gender" value="male">
             male
           </label>
           <label class="radio">
-            <input type="radio" v-model="gender">
+            <input type="radio" v-model="gender" value="female">
             female
           </label>
         </div>
@@ -43,9 +43,9 @@
       <center>
       <button class="button is-link" @click="postPost()">Submit</button>
       </center>
-    </form>
-  </div>
-</div>
+
+  <!-- </div> -->
+<!-- </div> -->
   </div>
 </template>
 
