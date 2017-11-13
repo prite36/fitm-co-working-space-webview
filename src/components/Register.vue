@@ -1,6 +1,6 @@
 <template>
-  <div class="hello">
-    <div class="field">
+  <div class="Register">
+    <div class="field" v-if="!regSuccess">
       <label class="label">First Name</label>
       <input class="input" type="text" v-model="firstName" required>
       <br><br>
@@ -33,6 +33,10 @@
       <button class="button is-link" @click="postPost()">Submit</button>
       </center>
     </div>
+    <div class="" v-else>
+         <h1>Register Success</h1>
+         <h1>Plese close Page</h1>
+    </div>
   </div>
 </template>
 
@@ -53,6 +57,7 @@ export default {
   name: 'Register',
   data () {
     return {
+      regSuccess: false,
       firstName: '',
       lastName: '',
       email: '',
@@ -76,7 +81,9 @@ export default {
         }
       })
       .then(response => {
-        console.log(response)
+        if (response.data === 'success') {
+          this.regSuccess = true
+        }
       })
       .catch(error => {
         console.log(error)
