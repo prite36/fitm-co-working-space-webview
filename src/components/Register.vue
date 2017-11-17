@@ -43,20 +43,11 @@
 <script>
 import firebase from 'firebase'
 import axios from 'axios'
-var config = {
-  apiKey: 'AIzaSyAE2rQQye4hlRpDqAWirvyaaCExiaWA8DY',
-  authDomain: 'fitm-coworkingspace.firebaseapp.com',
-  databaseURL: 'https://fitm-coworkingspace.firebaseio.com',
-  projectId: 'fitm-coworkingspace',
-  storageBucket: 'fitm-coworkingspace.appspot.com',
-  messagingSenderId: '181239315787'
-}
-firebase.initializeApp(config)
-// var db = firebase.database()
 export default {
   name: 'Register',
   data () {
     return {
+      data: '',
       regSuccess: false,
       firstName: '',
       lastName: '',
@@ -65,6 +56,12 @@ export default {
       birtday: '',
       gender: ''
     }
+  },
+  mounted () {
+    let that = this
+    firebase.database().ref('/').once('value', snapshot => {
+      that.data = snapshot.val()
+    })
   },
   methods: {
     postPost () {
