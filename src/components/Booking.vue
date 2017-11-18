@@ -2,7 +2,7 @@
 <div class="Booking">
   Please Select {{$route.params.item}}
   <!-- /////////////////////////////////////////////////////// -->
-  <div v-if="$route.params.item === 'device' && selectType === ''">
+  <div v-if="$route.params.item === 'device' && data.selectData.selectType === null">
     <div class="" v-for="(item, key) in items">
       Type Item = {{key}}
       <div class="" v-for="(childItem, key) in item">
@@ -11,17 +11,17 @@
     </div>
   </div>
   <!-- /////////////////////////////////////////////////////// -->
-  <div v-if="$route.params.item === 'meetingroom' && selectType === ''">
+  <div v-if="$route.params.item === 'meetingroom' && data.selectData.selectType === null">
     <div class="" v-for="(item, key) in items">
       Type Room = {{key}}
-      <v-btn color="primary" @click="selectType = key">{{key}}</v-btn>
+      <v-btn color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn>
     </div>
   </div>
   <!-- /////////////////////////////////////////////////////// -->
-  <div class="page2" v-if="selectType !== ''">
-    <v-dialog persistent v-model="modalDateStart" lazy full-width width="290px">
-      <v-text-field slot="activator" label="วันที่เริ่มจอง" v-model="dateStart" prepend-icon="event" readonly></v-text-field>
-      <v-date-picker v-model="dateStart" scrollable actions>
+  <div class="page2" v-if="data.selectData.selectType !== null">
+    <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
+      <v-text-field slot="activator" label="วันที่เริ่มจอง" v-model="data.selectData.dateStart" prepend-icon="event" readonly></v-text-field>
+      <v-date-picker v-model="data.selectData.dateStart" scrollable actions>
         <template slot-scope="{ save, cancel }">
          <v-card-actions>
            <v-spacer></v-spacer>
@@ -32,9 +32,9 @@
       </v-date-picker>
     </v-dialog>
     <!-- /////////////////////////////////////////////////////// -->
-    <v-dialog persistent v-model="modalTimeStart" lazy full-width width="290px">
-      <v-text-field slot="activator" label="เวลาที่เริ่มจอง" v-model="timeStart" prepend-icon="access_time" readonly></v-text-field>
-      <v-time-picker format="24hr" v-model="timeStart" actions>
+    <v-dialog persistent v-model="data.modals.modalTimeStart" lazy full-width width="290px">
+      <v-text-field slot="activator" label="เวลาที่เริ่มจอง" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
+      <v-time-picker format="24hr" v-model="data.selectData.timeStart" actions>
         <template slot-scope="{ save, cancel }">
           <v-card-actions>
             <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
@@ -45,9 +45,9 @@
     </v-dialog>
     <!-- /////////////////////////////////////////////////////// -->
 
-    <v-dialog persistent v-model="modalDateEnd" lazy full-width width="290px">
-      <v-text-field slot="activator" label="จองถึงวันที่" v-model="dateStop" prepend-icon="event" readonly></v-text-field>
-      <v-date-picker v-model="dateStop" scrollable actions>
+    <v-dialog persistent v-model="data.modals.modalDateStop" lazy full-width width="290px">
+      <v-text-field slot="activator" label="จองถึงวันที่" v-model="data.selectData.dateStop" prepend-icon="event" readonly></v-text-field>
+      <v-date-picker v-model="data.selectData.dateStop" scrollable actions>
         <template slot-scope="{ save, cancel }">
          <v-card-actions>
            <v-spacer></v-spacer>
@@ -59,9 +59,9 @@
     </v-dialog>
 
     <!-- /////////////////////////////////////////////////////// -->
-    <v-dialog persistent v-model="modalTimeStart" lazy full-width width="290px">
-      <v-text-field slot="activator" label="เวลาสิ้นสุด" v-model="timeStop" prepend-icon="access_time" readonly></v-text-field>
-      <v-time-picker format="24hr" v-model="timeStop" actions>
+    <v-dialog persistent v-model="data.modals.modalTimeStop" lazy full-width width="290px">
+      <v-text-field slot="activator" label="เวลาสิ้นสุด" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
+      <v-time-picker format="24hr" v-model="data.selectData.timeStop" actions>
         <template slot-scope="{ save, cancel }">
         <v-card-actions>
           <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
@@ -88,20 +88,21 @@ export default {
     return {
       db: firebase.database(),
       items: '',
-      selectType: '',
-
-      dateStart: null,
-      modalDateStart: false,
-
-      timeStart: null,
-      modalTimeStart: false,
-
-      dateEnd: null,
-      modalDateStop: false,
-
-      timeEnd: null,
-      modalTimeStop: false,
-
+      data: {
+        selectData: {
+          selectType: null,
+          dateStart: null,
+          timeStart: null,
+          dateStop: null,
+          timeStop: null
+        },
+        modals: {
+          modalDateStart: false,
+          modalTimeStart: false,
+          modalDateStop: false,
+          modalTimeStop: false
+        }
+      },
       countPeople: ''
     }
   },
@@ -110,6 +111,11 @@ export default {
     this.$bindAsObject('items', vm.db.ref('items').child(vm.$route.params.item))
   },
   methods: {
+    sendto (value, value2) {
+      if (value) {
+
+      }
+    },
     push () {
       this.$firebaseRefs.data.push({
         text: '55585'
@@ -141,6 +147,14 @@ export default {
   watch: {
     items: function () {
       delete this.items['.key']
+    },
+    data: {
+      handler (val, oldVal) {
+        if (Object.values(val.selectData).every(x => x !== null) && Object.values(val.modals).every(x => x === false)) {
+          console.log('pass')
+        }
+      },
+      deep: true
     }
   }
 }
