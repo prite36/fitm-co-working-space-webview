@@ -1,33 +1,23 @@
 <template>
   <div class="Booking">
-    <v-layout row wrap>
-     <v-spacer></v-spacer>
-     <v-flex xs11 sm5>
-       <v-dialog
-         persistent
-         v-model="modal2"
-         lazy
-         full-width
-         width="290px"
-       >
-         <v-text-field
-           slot="activator"
-           label="Picker in dialog"
-           v-model="time"
-           prepend-icon="access_time"
-           readonly
-         ></v-text-field>
-         <v-time-picker v-model="time" format="24hr" actions>
-           <template slot-scope="{ save, cancel }">
-             <v-card-actions>
-               <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
-               <v-btn flat color="primary" @click="save">Save</v-btn>
-             </v-card-actions>
-           </template>
-         </v-time-picker>
-       </v-dialog>
-     </v-flex>
-   </v-layout>
+    Please Select {{$route.params.item}}
+
+    <div v-if="$route.params.item === 'device'">
+     <div class="" v-for="(item, key) in items">
+       Type Item = {{key}}
+        <div class="" v-for="(childItem, key) in item">
+          <v-btn color="primary">{{key}}</v-btn>
+        </div>
+     </div>
+     </div>
+
+     <div v-if="$route.params.item === 'meetingroom'">
+      <div class="" v-for="(item, key) in items">
+        Type Room = {{key}}
+        <v-btn color="primary">{{key}}</v-btn>
+      </div>
+      </div>
+
   </div>
 </template>
 
@@ -38,19 +28,20 @@ export default {
   name: 'Register',
   data () {
     return {
-      data: '',
-      time: null,
-      menu2: false,
-      modal2: false
+      db: firebase.database(),
+      items: ''
     }
   },
   mounted () {
-    let that = this
-    firebase.database().ref('/').once('value', snapshot => {
-      that.data = snapshot.val()
-    })
+    let vm = this
+    this.$bindAsObject('items', vm.db.ref('items').child(vm.$route.params.item))
   },
   methods: {
+    push () {
+      this.$firebaseRefs.data.push({
+        text: '55585'
+      })
+    },
     postPost () {
       axios.post(`https://fitmcoworkingspace.me/externalregister`, {
         body: {
@@ -72,6 +63,11 @@ export default {
       .catch(error => {
         console.log(error)
       })
+    }
+  },
+  watch: {
+    items: function () {
+      delete this.items['.key']
     }
   }
 }

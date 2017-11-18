@@ -18,7 +18,8 @@ export default new Router({
       component: Register
     },
     {
-      path: '/booking',
+      path: '/booking/:senderID/:item',
+      // path: '/booking',
       name: 'Booking',
       component: Booking
     }
