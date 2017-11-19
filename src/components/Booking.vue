@@ -11,6 +11,7 @@
     </div>
   </div> -->
   <!-- /////////////////////////////////////////////////////// -->
+  <v-btn color="primary" @click="test()">test</v-btn>
   <div v-if="data.selectData.selectType === null">
     <div class="" v-for="(item, key) in items">
       Type Room = {{key}}
@@ -71,8 +72,15 @@
       </v-time-picker>
     </v-dialog>
 
-    <v-text-field prepend-icon="people" name="input-1" label="จำนวนผู้เข้าใช้งาน" v-model="data.selectData.countPeople"></v-text-field>
+    <v-text-field prepend-icon="people" name="input-1" label="จำนวนผู้เข้าใช้งาน" v-model="countPeople"></v-text-field>
 
+    <div class="" v-if="testButton">
+      select name = {{nameTypeItem}}
+         <v-btn color="primary" @click="nameTypeItem = 'mediumroom1'">mediumroom1</v-btn>
+         <v-btn color="primary" @click="nameTypeItem = 'mediumroom2'">mediumroom2</v-btn>
+
+         <v-btn color="primary" @click="pushBookingData()">SUBMIT</v-btn>
+    </div>
   </div>
 
 
@@ -86,7 +94,6 @@ export default {
   name: 'Register',
   data () {
     return {
-      db: firebase.database(),
       items: '',
       data: {
         selectData: {
@@ -94,8 +101,7 @@ export default {
           dateStart: null,
           timeStart: null,
           dateStop: null,
-          timeStop: null,
-          countPeople: null
+          timeStop: null
         },
         modals: {
           modalDateStart: false,
@@ -103,12 +109,15 @@ export default {
           modalDateStop: false,
           modalTimeStop: false
         }
-      }
+      },
+      countPeople: null,
+      testButton: false,
+      nameTypeItem: null
     }
   },
   mounted () {
     let vm = this
-    this.$bindAsObject('items', vm.db.ref('items').child(vm.$route.params.item))
+    this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item))
   },
   methods: {
     sendto (value, value2) {
@@ -122,16 +131,15 @@ export default {
     //   })
     // },
     postPost () {
-      axios.post(`https://fitmcoworkingspace.me/booking`, {
+      axios.post(`https://fitmcoworkingspace.me/searchBooking`, {
         body: {
+          userID: this.$route.params.senderID,
           item: this.$route.params.item,
-          senderID: this.$route.params.senderID,
           typeItem: this.data.selectData.selectType,
           dateStart: this.data.selectData.dateStart,
           timeStart: this.data.selectData.timeStart,
           dateStop: this.data.selectData.dateStop,
-          timeStop: this.data.selectData.timeStop,
-          countPeople: this.data.selectData.countPeople
+          timeStop: this.data.selectData.timeStop
         }
       })
       .then(response => {
@@ -141,6 +149,17 @@ export default {
       })
       .catch(error => {
         console.log(error)
+      })
+    },
+    pushBookingData () {
+      firebase.database().ref('booking/').child(this.$route.params.item).child(this.data.selectData.selectType).child(this.nameTypeItem).push({
+        senderID: this.$route.params.item,
+        selectType: this.data.selectData.selectType,
+        dateStart: this.data.selectData.dateStart,
+        timeStart: this.data.selectData.timeStart,
+        dateStop: this.data.selectData.dateStop,
+        timeStop: this.data.selectData.timeStop,
+        countPeople: this.countPeople
       })
     }
   },
@@ -152,7 +171,8 @@ export default {
       handler (val, oldVal) {
         if (Object.values(val.selectData).every(x => x !== null) && Object.values(val.modals).every(x => x === false)) {
           console.log('pass')
-          this.postPost()
+          // this.postPost()
+          this.testButton = true
         }
       },
       deep: true
