@@ -2,16 +2,16 @@
 <div class="Booking">
   Please Select {{$route.params.item}}
   <!-- /////////////////////////////////////////////////////// -->
-  <div v-if="$route.params.item === 'device' && data.selectData.selectType === null">
+  <!-- <div v-if="$route.params.item === 'device' && data.selectData.selectType === null">
     <div class="" v-for="(item, key) in items">
       Type Item = {{key}}
       <div class="" v-for="(childItem, key) in item">
         <v-btn color="primary">{{key}}</v-btn>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /////////////////////////////////////////////////////// -->
-  <div v-if="$route.params.item === 'meetingroom' && data.selectData.selectType === null">
+  <div v-if="data.selectData.selectType === null">
     <div class="" v-for="(item, key) in items">
       Type Room = {{key}}
       <v-btn color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn>
@@ -20,7 +20,7 @@
   <!-- /////////////////////////////////////////////////////// -->
   <div class="page2" v-if="data.selectData.selectType !== null">
     <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
-      <v-text-field slot="activator" label="วันที่เริ่มจอง" v-model="data.selectData.dateStart" prepend-icon="event" readonly></v-text-field>
+      <v-text-field slot="activator" label="วันที่เริ่มจอง" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
       <v-date-picker v-model="data.selectData.dateStart" scrollable actions>
         <template slot-scope="{ save, cancel }">
          <v-card-actions>
@@ -71,7 +71,7 @@
       </v-time-picker>
     </v-dialog>
 
-    <v-text-field prepend-icon="people" name="input-1" label="จำนวนผู้เข้าใช้งาน" v-model="countPeople"></v-text-field>
+    <v-text-field prepend-icon="people" name="input-1" label="จำนวนผู้เข้าใช้งาน" v-model="data.selectData.countPeople"></v-text-field>
 
   </div>
 
@@ -94,7 +94,8 @@ export default {
           dateStart: null,
           timeStart: null,
           dateStop: null,
-          timeStop: null
+          timeStop: null,
+          countPeople: null
         },
         modals: {
           modalDateStart: false,
@@ -102,8 +103,7 @@ export default {
           modalDateStop: false,
           modalTimeStop: false
         }
-      },
-      countPeople: ''
+      }
     }
   },
   mounted () {
@@ -116,27 +116,27 @@ export default {
 
       }
     },
-    push () {
-      this.$firebaseRefs.data.push({
-        text: '55585'
-      })
-    },
+    // push () {
+    //   this.$firebaseRefs.data.push({
+    //     text: '55585'
+    //   })
+    // },
     postPost () {
-      axios.post(`https://fitmcoworkingspace.me/externalregister`, {
+      axios.post(`https://fitmcoworkingspace.me/booking`, {
         body: {
-          status: this.$route.params.status,
+          item: this.$route.params.item,
           senderID: this.$route.params.senderID,
-          firstName: this.firstName,
-          lastName: this.lastName,
-          email: this.email,
-          phoneNumber: this.phoneNumber,
-          birtday: this.birtday,
-          gender: this.gender
+          typeItem: this.data.selectData.selectType,
+          dateStart: this.data.selectData.dateStart,
+          timeStart: this.data.selectData.timeStart,
+          dateStop: this.data.selectData.dateStop,
+          timeStop: this.data.selectData.timeStop,
+          countPeople: this.data.selectData.countPeople
         }
       })
       .then(response => {
-        if (response.data === 'success') {
-          this.regSuccess = true
+        if (response.data === 'recivebooking') {
+          console.log(response.data)
         }
       })
       .catch(error => {
@@ -152,6 +152,7 @@ export default {
       handler (val, oldVal) {
         if (Object.values(val.selectData).every(x => x !== null) && Object.values(val.modals).every(x => x === false)) {
           console.log('pass')
+          this.postPost()
         }
       },
       deep: true
