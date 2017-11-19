@@ -11,7 +11,8 @@
     </div>
   </div> -->
   <!-- /////////////////////////////////////////////////////// -->
-  <v-btn color="primary" @click="test()">test</v-btn>
+  <!-- <v-btn color="primary" @click="test()">test</v-btn> -->
+  <v-btn color="primary" @click="checkNameType()">test checkNameType</v-btn>
   <div v-if="data.selectData.selectType === null">
     <div class="" v-for="(item, key) in items">
       Type Room = {{key}}
@@ -90,6 +91,7 @@
 <script>
 import firebase from 'firebase'
 import axios from 'axios'
+import moment from 'moment-timezone'
 export default {
   name: 'Register',
   data () {
@@ -112,24 +114,15 @@ export default {
       },
       countPeople: null,
       testButton: false,
-      nameTypeItem: null
+      nameTypeItem: null,
+      bookingData: ''
     }
   },
   mounted () {
     let vm = this
-    this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item))
+    this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item), null, () => { delete this.items['.key'] })
   },
   methods: {
-    sendto (value, value2) {
-      if (value) {
-
-      }
-    },
-    // push () {
-    //   this.$firebaseRefs.data.push({
-    //     text: '55585'
-    //   })
-    // },
     postPost () {
       axios.post(`https://fitmcoworkingspace.me/searchBooking`, {
         body: {
@@ -153,20 +146,45 @@ export default {
     },
     pushBookingData () {
       firebase.database().ref('booking/').child(this.$route.params.item).child(this.data.selectData.selectType).child(this.nameTypeItem).push({
-        senderID: this.$route.params.item,
-        selectType: this.data.selectData.selectType,
+        userID: this.$route.params.senderID,
+        item: this.$route.params.item,
+        typeItem: this.data.selectData.selectType,
+        nameTypeItem: this.nameTypeItem,
         dateStart: this.data.selectData.dateStart,
         timeStart: this.data.selectData.timeStart,
         dateStop: this.data.selectData.dateStop,
         timeStop: this.data.selectData.timeStop,
-        countPeople: this.countPeople
+        countPeople: this.countPeople,
+        timeStamp: moment().tz('Asia/Bangkok').format('DD-MM-YYYY HH:mm')
       })
+    },
+    checkNameType () {
+      let vm = this
+      this.$bindAsObject('bookingData', firebase.database().ref('booking').child(vm.$route.params.item).child(vm.data.selectData.selectType), null, () => {
+        delete this.bookingData['.key']
+        Object.values(this.bookingData).forEach(name => {
+          Object.values(name).forEach(key => {
+            this.checkTimeCrash(key)
+          })
+        })
+      })
+    },
+    checkTimeCrash (times) {
+      let format = 'HH:mm'
+      // ข้อมูล time จากหน้าเว็บ เอามาเช็คว่า ชนกับเวลาการจองอื่นๆไหม
+      let timeStart = moment(this.data.selectData.timeStart, format)
+      let timeStop = moment(this.data.selectData.timeStop, format)
+      // ข้อมูล Time จาก DB ประวัติการจอง ครั้งนั้น
+      let checkTimeStart = moment(times.timeStart, format)
+      let checkTimeStop = moment(times.timeStop, format)
+      if (!timeStart.isBetween(checkTimeStart, checkTimeStop) && !timeStop.isBetween(checkTimeStart, checkTimeStop) && !checkTimeStart.isBetween(timeStart, timeStop) && !checkTimeStop.isBetween(timeStart, timeStop) && !timeStart.isSame(checkTimeStart) && !timeStop.isSame(checkTimeStop)) {
+        console.log('room ok')
+      } else {
+        console.log('room cancle')
+      }
     }
   },
   watch: {
-    items: function () {
-      delete this.items['.key']
-    },
     data: {
       handler (val, oldVal) {
         if (Object.values(val.selectData).every(x => x !== null) && Object.values(val.modals).every(x => x === false)) {
