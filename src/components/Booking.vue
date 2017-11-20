@@ -77,10 +77,10 @@
 
     <div class="" v-if="testButton">
       select name = {{nameTypeItem}}
-         <v-btn color="primary" @click="nameTypeItem = 'mediumroom1'">mediumroom1</v-btn>
-         <v-btn color="primary" @click="nameTypeItem = 'mediumroom2'">mediumroom2</v-btn>
-
-         <v-btn color="primary" @click="pushBookingData()">SUBMIT</v-btn>
+         <div v-for="name in nameTypeCanUse">
+           <v-btn color="primary" @click="nameTypeItem = name">{{name}}</v-btn>
+         </div>
+         <v-btn color="primary" v-if="nameTypeItem !== null" @click="pushBookingData()">SUBMIT</v-btn>
     </div>
   </div>
 
@@ -91,6 +91,7 @@
 <script>
 import firebase from 'firebase'
 import axios from 'axios'
+import diff from 'lodash/difference'
 import Moment from 'moment'
 import momenTime from 'moment-timezone'
 import { extendMoment } from 'moment-range'
@@ -118,7 +119,8 @@ export default {
       countPeople: null,
       testButton: false,
       nameTypeItem: null,
-      bookingData: ''
+      bookingData: '',
+      nameTypeCanUse: []
     }
   },
   mounted () {
@@ -129,13 +131,7 @@ export default {
     postPost () {
       axios.post(`https://fitmcoworkingspace.me/searchBooking`, {
         body: {
-          userID: this.$route.params.senderID,
-          item: this.$route.params.item,
-          typeItem: this.data.selectData.selectType,
-          dateStart: this.data.selectData.dateStart,
-          timeStart: this.data.selectData.timeStart,
-          dateStop: this.data.selectData.dateStop,
-          timeStop: this.data.selectData.timeStop
+          userID: this.$route.params.senderID
         }
       })
       .then(response => {
@@ -150,9 +146,6 @@ export default {
     pushBookingData () {
       firebase.database().ref('booking/').child(this.$route.params.item).child(this.data.selectData.selectType).child(this.nameTypeItem).push({
         userID: this.$route.params.senderID,
-        item: this.$route.params.item,
-        typeItem: this.data.selectData.selectType,
-        nameTypeItem: this.nameTypeItem,
         dateStart: this.data.selectData.dateStart,
         timeStart: this.data.selectData.timeStart,
         dateStop: this.data.selectData.dateStop,
@@ -161,46 +154,38 @@ export default {
         timeStamp: momenTime().tz('Asia/Bangkok').format('DD-MM-YYYY HH:mm')
       })
     },
-    checkNameType () {
+    checkNameTypeCanUse () {
       let vm = this
+      let nameTypeDontUse = []
       this.$bindAsObject('bookingData', firebase.database().ref('booking').child(vm.$route.params.item).child(vm.data.selectData.selectType), null, () => {
         delete this.bookingData['.key']
-        Object.values(this.bookingData).forEach(name => {
-          Object.values(name).forEach(key => {
-            this.checkTimeCrash(key)
-          })
-        })
+        // clear data
+        this.nameTypeCanUse = []
+        this.nameTypeItem = null
+
+        for (var name in this.bookingData) {
+          // ถ้าเจอประวัติการจองที่ชน จะเก็บชื่อ nameType ลงใน nameTypeDontUse
+          if (Object.values(this.bookingData[name]).some(key => this.checkOverlaps(key))) {
+            nameTypeDontUse.push(name)
+          }
+        }
+        // get difference between two arrays
+        this.nameTypeCanUse = diff(Object.keys(this.items[this.data.selectData.selectType]), nameTypeDontUse)
       })
     },
-    checkTimeCrash (times) {
+    checkOverlaps (value) {
       let format = 'YYYY-MM-DD HH:mm'
       // ข้อมูล date และ time จากหน้าเว็บ เอามาเช็คว่า ชนกับเวลาการจองอื่นๆไหม
       let inputStart = moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format)
       let inputStop = moment(`${this.data.selectData.dateStop} ${this.data.selectData.timeStop}`, format)
 
       // ข้อมูล date และ time จาก DB ประวัติการจอง ครั้งนั้น
-      let checkdbStart = moment(`${times.DateStart} ${times.timeStart}`, format)
-      let checkdbStop = moment(`${times.DateStop} ${times.timeStop}`, format)
-
+      let checkdbStart = moment(`${value.dateStart} ${value.timeStart}`, format)
+      let checkdbStop = moment(`${value.dateStop} ${value.timeStop}`, format)
       const range1 = moment.range(inputStart, inputStop)
       const range2 = moment.range(checkdbStart, checkdbStop)
-      console.log(range1.overlaps(range2))
-    },
-    test () {
-      let format = 'YYYY-MM-DD HH:mm'
-      console.log(moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format))
-      // let format = 'DD-MM-YYYY HH:mm'
-      // let Start = moment('10-05-2017 13:00', format)
-      // let stop = moment('11-05-2017 13:00', format)
-      // let check1 = moment('10-05-2017 10:00', format)
-      // let check2 = moment('11-05-2017 12:00', format)
-      // const range1 = moment.range(Start, stop)
-      // const range2 = moment.range(check1, check2)
-      //
-      // console.log(range1.overlaps(range2))
-
-      // console.log(check.isBetween(Start, stop))
-      // console.log(momenTime().tz('Asia/Bangkok').format('DD-MM-YYYY HH:mm'))
+      // overlaps ถ้าเวลา ชนกัน จะคืนค่า true
+      return range1.overlaps(range2)
     }
   },
   watch: {
@@ -208,7 +193,7 @@ export default {
       handler (val, oldVal) {
         if (Object.values(val.selectData).every(x => x !== null) && Object.values(val.modals).every(x => x === false)) {
           console.log('pass')
-          // this.postPost()
+          this.checkNameTypeCanUse()
           this.testButton = true
         }
       },
