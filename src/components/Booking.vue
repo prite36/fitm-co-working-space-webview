@@ -11,7 +11,7 @@
     </div>
   </div> -->
   <!-- /////////////////////////////////////////////////////// -->
-  <!-- <v-btn color="primary" @click="test()">test</v-btn> -->
+  <v-btn color="primary" @click="test()">test</v-btn>
   <v-btn color="primary" @click="checkNameType()">test checkNameType</v-btn>
   <div v-if="data.selectData.selectType === null">
     <div class="" v-for="(item, key) in items">
@@ -91,7 +91,10 @@
 <script>
 import firebase from 'firebase'
 import axios from 'axios'
-import moment from 'moment-timezone'
+import Moment from 'moment'
+import momenTime from 'moment-timezone'
+import { extendMoment } from 'moment-range'
+const moment = extendMoment(Moment)
 export default {
   name: 'Register',
   data () {
@@ -155,7 +158,7 @@ export default {
         dateStop: this.data.selectData.dateStop,
         timeStop: this.data.selectData.timeStop,
         countPeople: this.countPeople,
-        timeStamp: moment().tz('Asia/Bangkok').format('DD-MM-YYYY HH:mm')
+        timeStamp: momenTime().tz('Asia/Bangkok').format('DD-MM-YYYY HH:mm')
       })
     },
     checkNameType () {
@@ -170,18 +173,34 @@ export default {
       })
     },
     checkTimeCrash (times) {
-      let format = 'HH:mm'
-      // ข้อมูล time จากหน้าเว็บ เอามาเช็คว่า ชนกับเวลาการจองอื่นๆไหม
-      let timeStart = moment(this.data.selectData.timeStart, format)
-      let timeStop = moment(this.data.selectData.timeStop, format)
-      // ข้อมูล Time จาก DB ประวัติการจอง ครั้งนั้น
-      let checkTimeStart = moment(times.timeStart, format)
-      let checkTimeStop = moment(times.timeStop, format)
-      if (!timeStart.isBetween(checkTimeStart, checkTimeStop) && !timeStop.isBetween(checkTimeStart, checkTimeStop) && !checkTimeStart.isBetween(timeStart, timeStop) && !checkTimeStop.isBetween(timeStart, timeStop) && !timeStart.isSame(checkTimeStart) && !timeStop.isSame(checkTimeStop)) {
-        console.log('room ok')
-      } else {
-        console.log('room cancle')
-      }
+      let format = 'YYYY-MM-DD HH:mm'
+      // ข้อมูล date และ time จากหน้าเว็บ เอามาเช็คว่า ชนกับเวลาการจองอื่นๆไหม
+      let inputStart = moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format)
+      let inputStop = moment(`${this.data.selectData.dateStop} ${this.data.selectData.timeStop}`, format)
+
+      // ข้อมูล date และ time จาก DB ประวัติการจอง ครั้งนั้น
+      let checkdbStart = moment(`${times.DateStart} ${times.timeStart}`, format)
+      let checkdbStop = moment(`${times.DateStop} ${times.timeStop}`, format)
+
+      const range1 = moment.range(inputStart, inputStop)
+      const range2 = moment.range(checkdbStart, checkdbStop)
+      console.log(range1.overlaps(range2))
+    },
+    test () {
+      let format = 'YYYY-MM-DD HH:mm'
+      console.log(moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format))
+      // let format = 'DD-MM-YYYY HH:mm'
+      // let Start = moment('10-05-2017 13:00', format)
+      // let stop = moment('11-05-2017 13:00', format)
+      // let check1 = moment('10-05-2017 10:00', format)
+      // let check2 = moment('11-05-2017 12:00', format)
+      // const range1 = moment.range(Start, stop)
+      // const range2 = moment.range(check1, check2)
+      //
+      // console.log(range1.overlaps(range2))
+
+      // console.log(check.isBetween(Start, stop))
+      // console.log(momenTime().tz('Asia/Bangkok').format('DD-MM-YYYY HH:mm'))
     }
   },
   watch: {
