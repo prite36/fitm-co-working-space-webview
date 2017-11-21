@@ -148,7 +148,7 @@ export default {
         dateStop: this.data.selectData.dateStop,
         timeStop: this.data.selectData.timeStop,
         countPeople: this.countPeople,
-        timeStamp: momenTime().tz('Asia/Bangkok').format('DD-MM-YYYY HH:mm')
+        timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
       })
       this.postPost()
     },
