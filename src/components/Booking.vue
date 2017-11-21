@@ -127,7 +127,7 @@ export default {
     postPost () {
       axios.post(`https://fitmcoworkingspace.me/bookingSuccess`, {
         body: {
-          userID: this.$route.params.senderID,
+          senderID: this.$route.params.senderID,
           item: this.$route.params.item
         }
       })
@@ -150,6 +150,7 @@ export default {
         countPeople: this.countPeople,
         timeStamp: momenTime().tz('Asia/Bangkok').format('DD-MM-YYYY HH:mm')
       })
+      this.postPost()
     },
     checkNameTypeCanUse () {
       let vm = this
