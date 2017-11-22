@@ -126,11 +126,7 @@ export default {
   methods: {
     postPost (newData) {
       axios.post(`https://fitmcoworkingspace.me/bookingSuccess`, {
-        body: {
-          data: {
-            newData
-          }
-        }
+        body: newData
       })
       .then(response => {
         if (response.data === 'success') {
@@ -146,6 +142,7 @@ export default {
       let key = myRef.key
       let newData = {
         id: key,
+        childPart: `booking/${this.$route.params.item}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
         nameTypeItem: this.nameTypeItem,
         senderID: this.$route.params.senderID,
         dateStart: this.data.selectData.dateStart,
