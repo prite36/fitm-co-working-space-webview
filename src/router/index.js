@@ -20,13 +20,11 @@ export default new Router({
     },
     {
       path: '/booking/:senderID/:item',
-      // path: '/booking',
       name: 'Booking',
       component: Booking
     },
     {
-      path: '/rebooking/:bookingPart',
-      // path: '/booking',
+      path: '/rebooking/:senderID/:bookingPart',
       name: 'ReBooking',
       component: ReBooking
     }

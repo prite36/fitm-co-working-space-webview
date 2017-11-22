@@ -126,7 +126,11 @@ export default {
   methods: {
     postPost (newData) {
       axios.post(`https://fitmcoworkingspace.me/bookingSuccess`, {
-        body: newData
+        body: {
+          data: {
+            newData
+          }
+        }
       })
       .then(response => {
         if (response.data === 'success') {
@@ -142,7 +146,8 @@ export default {
       let key = myRef.key
       let newData = {
         id: key,
-        userID: this.$route.params.senderID,
+        nameTypeItem: this.nameTypeItem,
+        senderID: this.$route.params.senderID,
         dateStart: this.data.selectData.dateStart,
         timeStart: this.data.selectData.timeStart,
         dateStop: this.data.selectData.dateStop,
@@ -151,7 +156,6 @@ export default {
         timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
       }
       myRef.update(newData)
-      console.log(key)
       this.postPost(newData)
     },
     checkNameTypeCanUse () {

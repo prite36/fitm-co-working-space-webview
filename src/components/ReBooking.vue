@@ -37,10 +37,12 @@ export default {
     }
   },
   methods: {
-    postPost () {
+    postPost (timeChange) {
       axios.post(`https://fitmcoworkingspace.me/rebookingSuccess`, {
         body: {
-
+          senderID: this.$route.params.senderID,
+          date: moment(timeChange).format('DD-MM-YYYY'),
+          time: moment(timeChange).format('HH:mm')
         }
       })
       .then(response => {
@@ -53,18 +55,18 @@ export default {
       })
     },
     changeBookingData () {
-      let vm = this
       let format = 'YYYY-MM-DD HH:mm'
       let childPart = this.$route.params.bookingPart.replace(/:/g, '/')
       this.$bindAsObject('dataBooking', firebase.database().ref(childPart), null, () => {
         delete this.dataBooking['.key']
-        console.log(`${vm.dataBooking.dateStop} ${vm.dataBooking.timeStop}`)
-        const tineChange = moment(`${this.dataBooking.dateStop} ${this.dataBooking.timeStop}`, format).add({hours: this.hours, minutes: this.minutes})
+        const timeChange = moment(`${this.dataBooking.dateStop} ${this.dataBooking.timeStop}`, format).add({hours: this.hours, minutes: this.minutes})
+        console.log(moment(timeChange).format('DD-MM-YYYY'))
         firebase.database().ref(childPart).update({
-          dateStop: moment(tineChange).format('YYYY-MM-DD'),
-          timeStop: moment(tineChange).format('HH:mm'),
+          dateStop: moment(timeChange).format('YYYY-MM-DD'),
+          timeStop: moment(timeChange).format('HH:mm'),
           timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
         })
+        this.postPost(timeChange)
       })
     }
   }
