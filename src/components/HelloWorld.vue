@@ -5,10 +5,6 @@
 </template>
 
 <script>
-import Moment from 'moment'
-// import momenTime from 'moment-timezone'
-import { extendMoment } from 'moment-range'
-const moment = extendMoment(Moment)
 export default {
   name: 'HelloWorld',
   data () {
@@ -17,11 +13,6 @@ export default {
     }
   },
   methods: {
-    test () {
-      let format = 'YYYY-MM-DD HH:mm'
-      let start = moment('2017-11-12 23:30', format).add(1, 'h')
-      console.log('show time ' + moment(start).format(format))
-    }
   }
 }
 </script>
