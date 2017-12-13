@@ -124,12 +124,9 @@ export default {
     this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item), null, () => { delete this.items['.key'] })
   },
   methods: {
-    postPost () {
+    postPost (newData) {
       axios.post(`https://fitmcoworkingspace.me/bookingSuccess`, {
-        body: {
-          senderID: this.$route.params.senderID,
-          item: this.$route.params.item
-        }
+        body: newData
       })
       .then(response => {
         if (response.data === 'success') {
@@ -141,16 +138,22 @@ export default {
       })
     },
     pushBookingData () {
-      firebase.database().ref('booking/').child(this.$route.params.item).child(this.data.selectData.selectType).child(this.nameTypeItem).push({
-        userID: this.$route.params.senderID,
+      let myRef = firebase.database().ref('booking/').child(this.$route.params.item).child(this.data.selectData.selectType).child(this.nameTypeItem).push()
+      let key = myRef.key
+      let newData = {
+        id: key,
+        childPart: `booking/${this.$route.params.item}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
+        nameTypeItem: this.nameTypeItem,
+        senderID: this.$route.params.senderID,
         dateStart: this.data.selectData.dateStart,
         timeStart: this.data.selectData.timeStart,
         dateStop: this.data.selectData.dateStop,
         timeStop: this.data.selectData.timeStop,
         countPeople: this.countPeople,
         timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
-      })
-      this.postPost()
+      }
+      myRef.update(newData)
+      this.postPost(newData)
     },
     checkNameTypeCanUse () {
       let vm = this
