@@ -14,8 +14,8 @@
           <span v-show="errors.has('last_name')" class="help is-danger">{{ errors.first('last_name') }}</span>
         </p>
         <br><br>
-        <label class="label">Email</label>
          <p :class="{ 'control': true }">
+           <label class="label">Email</label>
            <input v-validate="'required|email'" :class="{'input': true, 'is-danger': errors.has('email') }" name="email" type="text" placeholder="example@mail.com" v-model="email" >
            <span v-show="errors.has('email')" class="help is-danger">{{ errors.first('email') }}</span>
          </p>
@@ -26,22 +26,24 @@
           <span v-show="errors.has('phone_number')" class="help is-danger">{{ errors.first('phone_number') }}</span>
         </p>
         <br><br>
-        <label class="label">Birth Day</label>
-        <input class="input" type="date" placeholder="" v-model="birtday" >
+        <p class="control has-icon has-icon-right">
+          <label class="label">Birth Day</label>
+          <input class="input" type="date"  v-model="birtday" name="birth_day" v-validate="'required'" :class="{'input': true, 'is-danger': errors.has('birth_day') }" placeholder="DD/MM/YYYY">
+          <span v-show="errors.has('birth_day')" class="help is-danger">{{ errors.first('birth_day') }}</span>
+        </p>
         <br><br>
-        <label class="label">Gender</label>
-        <div class="field">
-          <div class="control">
+        <!-- <legend :class="{ 'error': errors.has('radio_group_1') }">Radio Group 1</legend> -->
+          <p class="control">
             <label class="radio">
-              <input type="radio" v-model="gender" value="male">
+              <input name="radio_group_1" type="radio" v-model="gender" v-validate="'required'" value="male">
               male
             </label>
             <label class="radio">
-              <input type="radio" v-model="gender" value="female">
+              <input name="radio_group_1" type="radio" v-model="gender" value="female">
               female
             </label>
-          </div>
-        </div>
+            <span v-show="errors.has('radio_group_1')" class="help is-danger">{{ errors.first('radio_group_1') }}</span>
+          </p>
         <center>
           <button class="button is-link" >Submit</button>
         <!-- <button class="button is-link" @click="postPost()">Submit</button> -->
