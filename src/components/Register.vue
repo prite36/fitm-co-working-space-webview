@@ -45,7 +45,6 @@
           </p>
         <center>
           <button class="button is-link" >Submit</button>
-        {{allProfile}}
         </center>
       </div>
 
@@ -66,6 +65,7 @@ export default {
   data () {
     return {
       allProfile: '',
+      allState: '',
       emailsDB: [],
       regSuccess: false,
       firstName: '',
@@ -114,6 +114,7 @@ export default {
     },
     getData () {
       this.$bindAsObject('allProfile', firebase.database().ref('profile'), null)
+      this.$bindAsObject('allState', firebase.database().ref('state'), null)
     }
   },
   created () {
@@ -147,8 +148,18 @@ export default {
       delete this.allProfile['.key']
       // ดึงแค่ email เก็บใน emailsDB
       for (let status in this.allProfile) {
-        for (let key in this.allProfile[status]) {
-          this.emailsDB.push(this.allProfile[status][key].email)
+        for (let id in this.allProfile[status]) {
+          this.emailsDB.push(this.allProfile[status][id].email)
+        }
+      }
+    },
+    allState () {
+      delete this.allState['.key']
+      // ดึงแค่ email เก็บใน emailsDB
+      for (let id in this.allState) {
+        // ถ้า id นั้นเป็น object ที่มี   data:
+        if (this.allState[id].data) {
+          this.emailsDB.push(this.allState[id].data.email)
         }
       }
     }
