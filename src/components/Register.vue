@@ -16,7 +16,7 @@
         <br><br>
          <p :class="{ 'control': true }">
            <label class="label">Email</label>
-           <input v-validate="'required|email'" :class="{'input': true, 'is-danger': errors.has('email') }" name="email" type="text" placeholder="example@mail.com" v-model="email" >
+           <input v-validate="'required|email|unique'" :class="{'input': true, 'is-danger': errors.has('email') }" name="email" type="text" placeholder="example@mail.com" v-model="email" >
            <span v-show="errors.has('email')" class="help is-danger">{{ errors.first('email') }}</span>
          </p>
         <br><br>
@@ -32,7 +32,6 @@
           <span v-show="errors.has('birth_day')" class="help is-danger">{{ errors.first('birth_day') }}</span>
         </p>
         <br><br>
-        <!-- <legend :class="{ 'error': errors.has('radio_group_1') }">Radio Group 1</legend> -->
           <p class="control">
             <label class="radio">
               <input name="radio_group_1" type="radio" v-model="gender" v-validate="'required'" value="male">
@@ -46,7 +45,7 @@
           </p>
         <center>
           <button class="button is-link" >Submit</button>
-        <!-- <button class="button is-link" @click="postPost()">Submit</button> -->
+        {{allProfile}}
         </center>
       </div>
 
@@ -60,12 +59,14 @@
 
 <script>
 import firebase from 'firebase'
+import { Validator } from 'vee-validate'
 import axios from 'axios'
 export default {
   name: 'Register',
   data () {
     return {
-      data: '',
+      allProfile: '',
+      emailsDB: [],
       regSuccess: false,
       firstName: '',
       lastName: '',
@@ -75,18 +76,15 @@ export default {
       gender: ''
     }
   },
-  mounted () {
-    let that = this
-    firebase.database().ref('/').once('value', snapshot => {
-      that.data = snapshot.val()
-    })
-  },
   methods: {
     validateBeforeSubmit () {
       this.$validator.validateAll().then((result) => {
         if (result) {
           // eslint-disable-next-line
-          alert('From Submitted!')
+          this.$nextTick().then(() => {
+            this.$validator.reset()
+          })
+          this.postPost()
           return
         }
         alert('Correct them errors!')
@@ -113,6 +111,46 @@ export default {
       .catch(error => {
         console.log(error)
       })
+    },
+    getData () {
+      this.$bindAsObject('allProfile', firebase.database().ref('profile'), null)
+    }
+  },
+  created () {
+    // ดึงข้อมูล profile 1 ครั้ง
+    this.getData()
+    // เช็ค Email
+    const isUnique = value => new Promise((resolve) => {
+      setTimeout(() => {
+        if (this.emailsDB.indexOf(value) === -1) {
+          return resolve({
+            valid: true
+          })
+        }
+        return resolve({
+          valid: false,
+          data: {
+            message: `${value} is already taken.`
+          }
+        })
+      }, 200)
+    })
+    Validator.extend('unique', {
+      validate: isUnique,
+      getMessage: (field, params, data) => data.message
+    })
+  },
+  mounted () {
+  },
+  watch: {
+    allProfile () {
+      delete this.allProfile['.key']
+      // ดึงแค่ email เก็บใน emailsDB
+      for (let status in this.allProfile) {
+        for (let key in this.allProfile[status]) {
+          this.emailsDB.push(this.allProfile[status][key].email)
+        }
+      }
     }
   }
 }
