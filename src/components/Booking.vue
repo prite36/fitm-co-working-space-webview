@@ -142,7 +142,7 @@ export default {
       let key = myRef.key
       let newData = {
         id: key,
-        childPart: `booking/${this.$route.params.item}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
+        childPart: `${this.$route.params.item}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
         nameTypeItem: this.nameTypeItem,
         senderID: this.$route.params.senderID,
         dateStart: this.data.selectData.dateStart,

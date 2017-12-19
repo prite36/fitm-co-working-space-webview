@@ -3,12 +3,11 @@
   <div v-if="!reBookingSuccess">
     Please input time
     <!-- /////////////////////////////////////////////////////// -->
-    <v-form v-model="valid">
-      <v-text-field label="Hour" v-model="hours"  ></v-text-field>
-    </v-form>
-    <v-form v-model="valid">
-      <v-text-field label="Minute" v-model="minutes"  ></v-text-field>
-    </v-form>
+    <select v-model="selectedMinutes">
+      <option v-for="option in minutesOptions" v-bind:value="option.value">
+        {{ option.text }}
+      </option>
+    </select>
     <v-btn color="primary" @click="changeBookingData()">Submit</v-btn>
   </div>
   <div class="" v-else>
@@ -24,6 +23,7 @@ import Moment from 'moment'
 import momenTime from 'moment-timezone'
 import { extendMoment } from 'moment-range'
 import axios from 'axios'
+import _ from 'lodash/Math'
 const moment = extendMoment(Moment)
 export default {
   name: 'Register',
@@ -31,9 +31,11 @@ export default {
     return {
       valid: false,
       dataBooking: null,
-      hours: null,
       minutes: null,
-      reBookingSuccess: false
+      reBookingSuccess: false,
+      childPart: [],
+      selectedMinutes: null,
+      minutesOptions: []
     }
   },
   methods: {
@@ -56,19 +58,39 @@ export default {
     },
     changeBookingData () {
       let format = 'YYYY-MM-DD HH:mm'
-      let childPart = this.$route.params.bookingPart.replace(/:/g, '/')
-      this.$bindAsObject('dataBooking', firebase.database().ref(childPart), null, () => {
-        delete this.dataBooking['.key']
-        const timeChange = moment(`${this.dataBooking.dateStop} ${this.dataBooking.timeStop}`, format).add({hours: this.hours, minutes: this.minutes})
-        console.log(moment(timeChange).format('DD-MM-YYYY'))
-        firebase.database().ref(childPart).update({
-          dateStop: moment(timeChange).format('YYYY-MM-DD'),
-          timeStop: moment(timeChange).format('HH:mm'),
-          timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
-        })
-        this.postPost(timeChange)
+      // let childPart = this.$route.params.bookingPart.replace(/:/g, '/')
+      const timeChange = moment(`${this.dataBooking[this.childPart[3]].dateStop} ${this.dataBooking[this.childPart[3]].timeStop}`, format).add({hours: this.hours, minutes: this.minutes})
+      firebase.database().ref('/booking').child(this.childPart[0]).child(this.childPart[1]).child(this.childPart[2]).child(this.childPart[3]).update({
+        dateStop: moment(timeChange).format('YYYY-MM-DD'),
+        timeStop: moment(timeChange).format('HH:mm'),
+        timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
       })
+      this.postPost(timeChange)
     }
+  },
+  created () {
+    let format = 'YYYY-MM-DD HH:mm'
+    this.childPart = this.$route.params.bookingPart.split(':')
+    this.$bindAsObject('dataBooking', firebase.database().ref('/booking').child(this.childPart[0]).child(this.childPart[1]).child(this.childPart[2]), null, () => {
+      delete this.dataBooking['.key']
+      let getTime = `${this.dataBooking[this.childPart[3]].dateStop} ${this.dataBooking[this.childPart[3]].timeStop}`
+      let dateTimeStop = moment(getTime, format)
+      let dateTimeStopAdd60 = moment(getTime, format).add({minutes: 60})
+      let timeDiffAll = []
+      console.log(`old ${moment(dateTimeStop).format(format)} new ${moment(dateTimeStopAdd60).format(format)}`)
+      for (var key in this.dataBooking) {
+        let checkDateTimeStop = moment(`${this.dataBooking[key].dateStop} ${this.dataBooking[key].timeStop}`, format)
+        if (checkDateTimeStop.isBetween(dateTimeStop, dateTimeStopAdd60)) {
+          timeDiffAll.push(checkDateTimeStop.diff(dateTimeStop, 'm'))
+        }
+      }
+      let minMinuteForReBooking = _.min(timeDiffAll)
+      for (var i = 1; i <= minMinuteForReBooking; i++) {
+        if (i % 5 === 0) {
+          this.minutesOptions.push({ text: ` ${i} นาที`, value: i })
+        }
+      }
+    })
   }
 }
 </script>
