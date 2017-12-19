@@ -13,7 +13,7 @@
     <div class="page2" v-if="data.selectData.selectType !== null">
       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
         <v-text-field slot="activator" label="วันที่เริ่มจอง" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
-        <v-date-picker v-model="data.selectData.dateStart" scrollable actions>
+        <v-date-picker v-model="data.selectData.dateStart" :allowed-dates= "allowedDatesStart" crollable actions>
           <template slot-scope="{ save, cancel }">
            <v-card-actions>
              <v-spacer></v-spacer>
@@ -26,7 +26,7 @@
       <!-- /////////////////////////////////////////////////////// -->
       <v-dialog persistent v-model="data.modals.modalTimeStart" lazy full-width width="290px">
         <v-text-field slot="activator" label="เวลาที่เริ่มจอง" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
-        <v-time-picker format="24hr" v-model="data.selectData.timeStart" actions>
+        <v-time-picker format="24hr" v-model="data.selectData.timeStart" :allowed-hours="allowedTimesStart.hours" :allowed-minutes="allowedTimesStart.minutes" actions>
           <template slot-scope="{ save, cancel }">
             <v-card-actions>
               <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
@@ -39,7 +39,7 @@
 
       <v-dialog persistent v-model="data.modals.modalDateStop" lazy full-width width="290px">
         <v-text-field slot="activator" label="จองถึงวันที่" v-model="data.selectData.dateStop" prepend-icon="event" readonly></v-text-field>
-        <v-date-picker v-model="data.selectData.dateStop" scrollable actions>
+        <v-date-picker v-model="data.selectData.dateStop" :allowed-dates= "allowedDatesStop" scrollable actions>
           <template slot-scope="{ save, cancel }">
            <v-card-actions>
              <v-spacer></v-spacer>
@@ -53,7 +53,7 @@
       <!-- /////////////////////////////////////////////////////// -->
       <v-dialog persistent v-model="data.modals.modalTimeStop" lazy full-width width="290px">
         <v-text-field slot="activator" label="เวลาสิ้นสุด" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
-        <v-time-picker format="24hr" v-model="data.selectData.timeStop" actions>
+        <v-time-picker format="24hr" v-model="data.selectData.timeStop" :allowed-hours="allowedTimesStop.hours" :allowed-minutes="allowedTimesStop.minutes" actions>
           <template slot-scope="{ save, cancel }">
           <v-card-actions>
             <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
@@ -63,15 +63,17 @@
         </v-time-picker>
       </v-dialog>
 
-      <v-text-field prepend-icon="people" name="input-1" label="จำนวนผู้เข้าใช้งาน" v-model="countPeople"></v-text-field>
+      <v-text-field prepend-icon="people" name="input-1" label="จำนวนผู้เข้าใช้งาน" v-model="countPeople" v-show="this.$route.params.item === 'meetingroom'"></v-text-field>
 
       <div class="" v-if="testButton">
         select name = {{nameTypeItem}}
            <div v-for="name in nameTypeCanUse">
              <v-btn color="primary" @click="nameTypeItem = name">{{name}}</v-btn>
            </div>
-           <v-btn color="primary" v-if="nameTypeItem !== null" @click="pushBookingData()">SUBMIT</v-btn>
       </div>
+     <v-btn  light disabled v-show="nameTypeItem === null" @click="pushBookingData()">SUBMIT</v-btn>
+     <v-btn  color="primary" v-show="nameTypeItem !== null" @click="pushBookingData()">SUBMIT</v-btn>
+
     </div>
   </div>
   <div class="" v-else>
@@ -116,7 +118,36 @@ export default {
       nameTypeItem: null,
       bookingData: '',
       nameTypeCanUse: [],
-      bookingSuccess: false
+      bookingSuccess: false,
+      allowedDatesStart: {
+        min: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD'),
+        max: null
+      },
+      allowedDatesStop: {
+        min: null,
+        max: null
+      },
+      allowedTimesStart: {
+        hours: { min: 0, max: 24 },
+        minutes: function (value) {
+          if (value % 5 === 0) {
+            return true
+          } else {
+            return false
+          }
+        }
+      },
+      allowedTimesStop: {
+        hours: { min: 0, max: 24 },
+        minutes: function (value) {
+          if (value % 5 === 0) {
+            return true
+          } else {
+            return false
+          }
+        }
+      },
+      oldVal: null
     }
   },
   mounted () {
@@ -194,15 +225,38 @@ export default {
   },
   watch: {
     data: {
-      handler (val, oldVal) {
+      handler (val) {
         if (Object.values(val.selectData).every(x => x !== null) && Object.values(val.modals).every(x => x === false)) {
           console.log('pass')
           this.checkNameTypeCanUse()
           this.testButton = true
         }
+        // DatesStop จะเลือกวันที่ได้น้อยสุดคือ วันที่เลือก dateStart
+        this.allowedDatesStop.min = val.selectData.dateStart
+        // DatesStart จะเลือกวันที่ได้มากสุด คือวันที่เลิอก  dateStop
+        this.allowedDatesStart.max = val.selectData.dateStop
       },
       deep: true
     }
+    // 'data.selectData.dateStart': function (val, oldVal) {
+    //   this.data.selectData.timeStart = null
+    // },
+    // 'data.selectData.dateStop': function (val, oldVal) {
+    //   this.data.selectData.timeStop = null
+    //   if (this.data.selectData.dateStart && this.data.selectData.dateStart === this.data.selectData.dateStop) {
+    //     console.log('date')
+    //     if (this.data.selectData.timeStart) {
+    //       console.log('pass')
+    //       this.allowedTimesStop.minutes = function (value) {
+    //         if (value % 10 === 0) {
+    //           return true
+    //         } else {
+    //           return false
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
   }
 }
 </script>
