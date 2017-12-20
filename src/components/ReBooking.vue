@@ -8,6 +8,7 @@
         {{ option.text }}
       </option>
     </select>
+    Minute
     <v-btn color="primary" @click="changeBookingData()">Submit</v-btn>
   </div>
   <div class="" v-else>
@@ -59,12 +60,15 @@ export default {
     changeBookingData () {
       let format = 'YYYY-MM-DD HH:mm'
       // let childPart = this.$route.params.bookingPart.replace(/:/g, '/')
-      const timeChange = moment(`${this.dataBooking[this.childPart[3]].dateStop} ${this.dataBooking[this.childPart[3]].timeStop}`, format).add({hours: this.hours, minutes: this.minutes})
-      firebase.database().ref('/booking').child(this.childPart[0]).child(this.childPart[1]).child(this.childPart[2]).child(this.childPart[3]).update({
+      let getTime = `${this.dataBooking[this.childPart[3]].dateStop} ${this.dataBooking[this.childPart[3]].timeStop}`
+      const timeChange = moment(getTime, format).add({minutes: this.selectedMinutes})
+      // update firebase
+      this.$firebaseRefs.dataBooking.child(this.childPart[3]).update({
         dateStop: moment(timeChange).format('YYYY-MM-DD'),
         timeStop: moment(timeChange).format('HH:mm'),
         timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
       })
+      // send data to server
       this.postPost(timeChange)
     }
   },
@@ -73,27 +77,41 @@ export default {
       let format = 'YYYY-MM-DD HH:mm'
       delete this.dataBooking['.key']
       let getTime = `${this.dataBooking[this.childPart[3]].dateStop} ${this.dataBooking[this.childPart[3]].timeStop}`
+      console.log(getTime)
       let dateTimeStop = moment(getTime, format)
+      // เวลาจองสิ้นสุด บวกเพื่มอีก 60 นาที
       let dateTimeStopAdd60 = moment(getTime, format).add({minutes: 60})
       let timeDiffAll = []
       console.log(`old ${moment(dateTimeStop).format(format)} new ${moment(dateTimeStopAdd60).format(format)}`)
+      // วนการจองแต่ละครั้ง ออกมาเช็ค
       for (var key in this.dataBooking) {
-        let checkDateTimeStop = moment(`${this.dataBooking[key].dateStop} ${this.dataBooking[key].timeStop}`, format)
-        if (checkDateTimeStop.isBetween(dateTimeStop, dateTimeStopAdd60)) {
-          timeDiffAll.push(checkDateTimeStop.diff(dateTimeStop, 'm'))
+        let checkDateTimeStart = moment(`${this.dataBooking[key].dateStart} ${this.dataBooking[key].timeStart}`, format)
+        // เช็คว่า เวลาอยู่ระหว่าง  เวลาจองสิ้นสุด กับ เวลาจองสิ้นสุด+60 รึเปล่า
+        if (checkDateTimeStart.isBetween(dateTimeStop, dateTimeStopAdd60)) {
+          // หาว่าเวลา start ห่างจากเวลา stop กี่นาที แล้วเก็บใส่ timeDiffAll
+          timeDiffAll.push(checkDateTimeStart.diff(dateTimeStop, 'm'))
         }
       }
+      // หาค่าที่น้อยที่สุดใน Array
       let minMinuteForReBooking = _.min(timeDiffAll)
+      // ถ้า minMinuteForReBooking คืนค่า undefined แสดงว่าใน timeDiffAll ไม่มีค่า []
+      if (!minMinuteForReBooking) {
+        // ให้ค่า จองได้น้อยสุด 60 นาที
+        minMinuteForReBooking = 60
+      }
+      // clear ค่า ที่ใช้ไปแสดงใน select Minute
       this.minutesOptions = []
       for (var i = 1; i <= minMinuteForReBooking; i++) {
         if (i % 5 === 0) {
-          this.minutesOptions.push({ text: ` ${i} นาที`, value: i })
+          this.minutesOptions.push({ text: `${i}`, value: i })
         }
       }
     }
   },
-  mounted () {
+  created () {
     this.childPart = this.$route.params.bookingPart.split(':')
+  },
+  mounted () {
     this.$bindAsObject('dataBooking', firebase.database().ref('/booking').child(this.childPart[0]).child(this.childPart[1]).child(this.childPart[2]))
   }
 }
