@@ -68,10 +68,9 @@ export default {
       this.postPost(timeChange)
     }
   },
-  created () {
-    let format = 'YYYY-MM-DD HH:mm'
-    this.childPart = this.$route.params.bookingPart.split(':')
-    this.$bindAsObject('dataBooking', firebase.database().ref('/booking').child(this.childPart[0]).child(this.childPart[1]).child(this.childPart[2]), null, () => {
+  watch: {
+    dataBooking: function () {
+      let format = 'YYYY-MM-DD HH:mm'
       delete this.dataBooking['.key']
       let getTime = `${this.dataBooking[this.childPart[3]].dateStop} ${this.dataBooking[this.childPart[3]].timeStop}`
       let dateTimeStop = moment(getTime, format)
@@ -85,12 +84,17 @@ export default {
         }
       }
       let minMinuteForReBooking = _.min(timeDiffAll)
+      this.minutesOptions = []
       for (var i = 1; i <= minMinuteForReBooking; i++) {
         if (i % 5 === 0) {
           this.minutesOptions.push({ text: ` ${i} นาที`, value: i })
         }
       }
-    })
+    }
+  },
+  mounted () {
+    this.childPart = this.$route.params.bookingPart.split(':')
+    this.$bindAsObject('dataBooking', firebase.database().ref('/booking').child(this.childPart[0]).child(this.childPart[1]).child(this.childPart[2]))
   }
 }
 </script>
