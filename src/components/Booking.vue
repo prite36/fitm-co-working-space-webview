@@ -1,5 +1,13 @@
 <template>
 <div class="Booking">
+  <template>
+    <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+      <v-card color="grey lighten-4" flat>
+        <v-card-text>
+          <v-container fluid>
+            <v-layout row>
+              <v-flex xs12>
+              </v-flex>
   <div v-if="!bookingSuccess">
     Please Select {{$route.params.item}}
     <!-- /////////////////////////////////////////////////////// -->
@@ -80,7 +88,14 @@
        <h1>Booking  {{$route.params.item}} Success</h1>
        <h1>Plese close Page</h1>
   </div>
-
+  </v-layout>
+  </v-container>
+  </v-card-text>
+  <br>
+  </v-card>
+  </v-parallax>
+  </template>
+  </v-app>
 
 </div>
 </template>
