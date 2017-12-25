@@ -7,20 +7,19 @@
           <v-container fluid>
             <v-layout row>
               <v-flex xs12>
-              </v-flex>
+
   <div v-if="!bookingSuccess">
     Please Select {{$route.params.item}}
     <!-- /////////////////////////////////////////////////////// -->
     <div v-if="data.selectData.selectType === null">
       <div class="" v-for="(item, key) in items">
-        Type Room = {{key}}
         <v-btn color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn>
       </div>
     </div>
     <!-- /////////////////////////////////////////////////////// -->
     <div class="page2" v-if="data.selectData.selectType !== null">
       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
-        <v-text-field slot="activator" label="วันที่เริ่มจอง" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
+        <v-text-field slot="activator" label="วันที่เริ่มจอง" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
         <v-date-picker v-model="data.selectData.dateStart" :allowed-dates= "allowedDatesStart" crollable actions>
           <template slot-scope="{ save, cancel }">
            <v-card-actions>
@@ -33,7 +32,7 @@
       </v-dialog>
       <!-- /////////////////////////////////////////////////////// -->
       <v-dialog persistent v-model="data.modals.modalTimeStart" lazy full-width width="290px">
-        <v-text-field slot="activator" label="เวลาที่เริ่มจอง" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
+        <v-text-field slot="activator" label="เวลาที่เริ่มจอง" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
         <v-time-picker format="24hr" v-model="data.selectData.timeStart" :allowed-hours="allowedTimesStart.hours" :allowed-minutes="allowedTimesStart.minutes" actions>
           <template slot-scope="{ save, cancel }">
             <v-card-actions>
@@ -46,7 +45,7 @@
       <!-- /////////////////////////////////////////////////////// -->
 
       <v-dialog persistent v-model="data.modals.modalDateStop" lazy full-width width="290px">
-        <v-text-field slot="activator" label="จองถึงวันที่" v-model="data.selectData.dateStop" prepend-icon="event" readonly></v-text-field>
+        <v-text-field slot="activator" label="จองถึงวันที่" :error-messages="errors.collect('date stop')" data-vv-name="date stop" v-validate="'required'" v-model="data.selectData.dateStop" prepend-icon="event" readonly></v-text-field>
         <v-date-picker v-model="data.selectData.dateStop" :allowed-dates= "allowedDatesStop" scrollable actions>
           <template slot-scope="{ save, cancel }">
            <v-card-actions>
@@ -60,7 +59,7 @@
 
       <!-- /////////////////////////////////////////////////////// -->
       <v-dialog persistent v-model="data.modals.modalTimeStop" lazy full-width width="290px">
-        <v-text-field slot="activator" label="เวลาสิ้นสุด" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
+        <v-text-field slot="activator" label="เวลาสิ้นสุด" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
         <v-time-picker format="24hr" v-model="data.selectData.timeStop" :allowed-hours="allowedTimesStop.hours" :allowed-minutes="allowedTimesStop.minutes" actions>
           <template slot-scope="{ save, cancel }">
           <v-card-actions>
@@ -71,14 +70,24 @@
         </v-time-picker>
       </v-dialog>
 
-      <v-text-field prepend-icon="people" name="input-1" label="จำนวนผู้เข้าใช้งาน" v-model="countPeople" v-show="this.$route.params.item === 'meetingroom'"></v-text-field>
-
-      <div class="" v-if="testButton">
-        select name = {{nameTypeItem}}
-           <div v-for="name in nameTypeCanUse">
-             <v-btn color="primary" @click="nameTypeItem = name">{{name}}</v-btn>
-           </div>
-      </div>
+      <v-text-field
+        prepend-icon="people"
+        name="input-1"
+        label="จำนวนผู้เข้าใช้งาน"
+        v-model="countPeople"
+        :error-messages="errors.collect('count people')"
+        v-validate="'required|numeric|max:3'"
+        data-vv-name="count people"
+        v-show="this.$route.params.item === 'meetingroom'"
+      ></v-text-field>
+        <v-select
+        label="Name Type Item"
+          v-bind:items="nameTypeCanUse"
+          v-model="nameTypeItem"
+          prepend-icon="map"
+          item-value="text"
+          :disabled="showNameMenu"
+        ></v-select>
      <v-btn  light disabled v-show="nameTypeItem === null" @click="pushBookingData()">SUBMIT</v-btn>
      <v-btn  color="primary" v-show="nameTypeItem !== null" @click="pushBookingData()">SUBMIT</v-btn>
 
@@ -88,6 +97,7 @@
        <h1>Booking  {{$route.params.item}} Success</h1>
        <h1>Plese close Page</h1>
   </div>
+  </v-flex>
   </v-layout>
   </v-container>
   </v-card-text>
@@ -129,7 +139,7 @@ export default {
         }
       },
       countPeople: null,
-      testButton: false,
+      showNameMenu: true,
       nameTypeItem: null,
       bookingData: '',
       nameTypeCanUse: [],
@@ -242,9 +252,8 @@ export default {
     data: {
       handler (val) {
         if (Object.values(val.selectData).every(x => x !== null) && Object.values(val.modals).every(x => x === false)) {
-          console.log('pass')
           this.checkNameTypeCanUse()
-          this.testButton = true
+          this.showNameMenu = false
         }
         // DatesStop จะเลือกวันที่ได้น้อยสุดคือ วันที่เลือก dateStart
         this.allowedDatesStop.min = val.selectData.dateStart
@@ -252,26 +261,10 @@ export default {
         this.allowedDatesStart.max = val.selectData.dateStop
       },
       deep: true
+    },
+    countPeople () {
+      console.log(this.countPeople)
     }
-    // 'data.selectData.dateStart': function (val, oldVal) {
-    //   this.data.selectData.timeStart = null
-    // },
-    // 'data.selectData.dateStop': function (val, oldVal) {
-    //   this.data.selectData.timeStop = null
-    //   if (this.data.selectData.dateStart && this.data.selectData.dateStart === this.data.selectData.dateStop) {
-    //     console.log('date')
-    //     if (this.data.selectData.timeStart) {
-    //       console.log('pass')
-    //       this.allowedTimesStop.minutes = function (value) {
-    //         if (value % 10 === 0) {
-    //           return true
-    //         } else {
-    //           return false
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
   }
 }
 </script>
