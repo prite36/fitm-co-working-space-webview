@@ -20,29 +20,29 @@
                         v-validate="'required|alpha'"
                       ></v-text-field>
                       <v-text-field
-                      label="Last name"
-                      v-model="lastName"
-                      prepend-icon="account_circle"
-                      name="last_name"
-                      :error-messages="errors.collect('last_name')"
-                      v-validate="'required|alpha'"
+                        label="Last name"
+                        v-model="lastName"
+                        prepend-icon="account_circle"
+                        name="last_name"
+                        :error-messages="errors.collect('last_name')"
+                        v-validate="'required|alpha'"
                       ></v-text-field>
                       <v-text-field
-                      label="email"
-                      v-model="email"
-                      prepend-icon="email"
-                      v-validate="'required|email|unique'"
-                      :error-messages="errors.collect('email')"
-                      name="email"
+                        label="email"
+                        v-model="email"
+                        prepend-icon="email"
+                        v-validate="'required|email|unique'"
+                        :error-messages="errors.collect('email')"
+                        name="email"
                       ></v-text-field>
                       <v-text-field
-                      label="Phone number"
-                      Pre-made="phone"
-                      v-model="phoneNumber"
-                      prepend-icon="contact_phone"
-                      name="phone_number"
-                      v-validate="'required|numeric'"
-                      :error-messages="errors.collect('phone_number')"
+                        label="Phone number"
+                        Pre-made="phone"
+                        v-model="phoneNumber"
+                        prepend-icon="contact_phone"
+                        name="phone_number"
+                        v-validate="'required|numeric'"
+                        :error-messages="errors.collect('phone_number')"
                       ></v-text-field>
                       <v-dialog persistent v-model="modaldate" lazy full-width width="290px">
                       <v-text-field
@@ -54,7 +54,7 @@
                         name="birth_day"
                         v-validate="'required'"
                         :error-messages="errors.collect('birth_day')"
-                      </v-text-field>
+                      ></v-text-field>
                       <v-date-picker v-model="birthday" scrollable actions>
                         <template slot-scope="{ save, cancel }">
                           <v-card-actions>
@@ -67,22 +67,21 @@
                     </v-dialog>
                     <v-radio-group
                     v-model="gender"
-                    label="Select gender">
+                    name="gender"
+                    v-validate="'required'"
+                    label="Select gender"
+                    :error-messages="errors.collect('gender')">
                       <br>
                       <v-radio label="male"
                         value="male"
                         color="success"
-                        v-validate="'required'"
-                        name="gender"
-                        :error-messages="errors.collect('gender')"
                       ></v-radio>
                       <v-radio label="female"
                         value="female"
-                        color="success"
                       ></v-radio>
                     </v-radio-group>
                     <!-- <a rel="nofollow" style="display:scroll;position:fixed;bottom:10px;center"> -->
-                      <v-btn color="primary" @click="postPost()">Submit</v-btn>
+                      <v-btn color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                     <!-- </a> -->
                     </v-flex>
                   </v-layout>
@@ -119,12 +118,12 @@ export default {
       allState: '',
       emailsDB: [],
       regSuccess: false,
-      firstName: '',
-      lastName: '',
-      email: '',
-      phoneNumber: '',
+      firstName: null,
+      lastName: null,
+      email: null,
+      phoneNumber: null,
       birthday: null,
-      gender: ''
+      gender: null
     }
   },
   methods: {
@@ -136,9 +135,7 @@ export default {
             this.$validator.reset()
           })
           this.postPost()
-          return
         }
-        alert('Correct them errors!')
       })
     },
     postPost () {
