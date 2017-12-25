@@ -1,57 +1,106 @@
 <template>
   <div class="Register">
     <form @submit.prevent="validateBeforeSubmit">
-      <div class="field" v-if="!regSuccess">
-        <p class="control has-icon has-icon-right">
-          <label class="label">First Name</label>
-          <input class="input" type="text" v-model="firstName" name="first_name"  v-validate="'required|alpha'" :class="{'input': true, 'is-danger': errors.has('first_name') }" placeholder="First Name">
-          <span v-show="errors.has('first_name')" class="help is-danger">{{ errors.first('first_name') }}</span>
-        </p>
-        <br><br>
-        <p class="control has-icon has-icon-right">
-          <label class="label">Last Name</label>
-          <input class="input" type="text" v-model="lastName" name="last_name"  v-validate="'required|alpha'" :class="{'input': true, 'is-danger': errors.has('last_name') }" placeholder="Last Name">
-          <span v-show="errors.has('last_name')" class="help is-danger">{{ errors.first('last_name') }}</span>
-        </p>
-        <br><br>
-         <p :class="{ 'control': true }">
-           <label class="label">Email</label>
-           <input v-validate="'required|email|unique'" :class="{'input': true, 'is-danger': errors.has('email') }" name="email" type="text" placeholder="example@mail.com" v-model="email" >
-           <span v-show="errors.has('email')" class="help is-danger">{{ errors.first('email') }}</span>
-         </p>
-        <br><br>
-        <p class="control has-icon has-icon-right">
-          <label class="label">Phone Number</label>
-          <input class="input" type="text" v-model="phoneNumber" name="phone_number"  v-validate="'required|numeric'" :class="{'input': true, 'is-danger': errors.has('phone_number') }" placeholder="Phone Number">
-          <span v-show="errors.has('phone_number')" class="help is-danger">{{ errors.first('phone_number') }}</span>
-        </p>
-        <br><br>
-        <p class="control has-icon has-icon-right">
-          <label class="label">Birth Day</label>
-          <input class="input" type="date"  v-model="birtday" name="birth_day" v-validate="'required'" :class="{'input': true, 'is-danger': errors.has('birth_day') }" placeholder="DD/MM/YYYY">
-          <span v-show="errors.has('birth_day')" class="help is-danger">{{ errors.first('birth_day') }}</span>
-        </p>
-        <br><br>
-          <p class="control">
-            <label class="radio">
-              <input name="radio_group_1" type="radio" v-model="gender" v-validate="'required'" value="male">
-              male
-            </label>
-            <label class="radio">
-              <input name="radio_group_1" type="radio" v-model="gender" value="female">
-              female
-            </label>
-            <span v-show="errors.has('radio_group_1')" class="help is-danger">{{ errors.first('radio_group_1') }}</span>
-          </p>
-        <center>
-          <button class="button is-link" >Submit</button>
-        </center>
+      <v-app id="inspire" v-if="!regSuccess">
+        <template>
+          <h2 align="center">Registeration for {{this.$route.params.status}}</h2>
+          <br>
+          <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+            <v-card color="grey lighten-4" flat>
+              <v-card-text>
+                <v-container fluid>
+                  <v-layout row>
+                    <v-flex xs12>
+                      <v-text-field
+                        :error-messages="errors.collect('first_name')"
+                        label="First name"
+                        v-model="firstName"
+                        prepend-icon="account_box"
+                        name="first_name"
+                        v-validate="'required|alpha'"
+                      ></v-text-field>
+                      <v-text-field
+                        label="Last name"
+                        v-model="lastName"
+                        prepend-icon="account_circle"
+                        name="last_name"
+                        :error-messages="errors.collect('last_name')"
+                        v-validate="'required|alpha'"
+                      ></v-text-field>
+                      <v-text-field
+                        label="email"
+                        v-model="email"
+                        prepend-icon="email"
+                        v-validate="'required|email|unique'"
+                        :error-messages="errors.collect('email')"
+                        name="email"
+                      ></v-text-field>
+                      <v-text-field
+                        label="Phone number"
+                        Pre-made="phone"
+                        v-model="phoneNumber"
+                        prepend-icon="contact_phone"
+                        name="phone_number"
+                        v-validate="'required|numeric'"
+                        :error-messages="errors.collect('phone_number')"
+                      ></v-text-field>
+                      <v-dialog persistent v-model="modaldate" lazy full-width width="290px">
+                      <v-text-field
+                        slot="activator"
+                        label="Change date in dialog"
+                        v-model="birthday"
+                        prepend-icon="event"
+                        readonly
+                        name="birth_day"
+                        v-validate="'required'"
+                        :error-messages="errors.collect('birth_day')"
+                      ></v-text-field>
+                      <v-date-picker v-model="birthday" scrollable actions>
+                        <template slot-scope="{ save, cancel }">
+                          <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
+                            <v-btn flat color="primary" @click="save">OK</v-btn>
+                          </v-card-actions>
+                        </template>
+                      </v-date-picker>
+                    </v-dialog>
+                    <v-radio-group
+                    v-model="gender"
+                    name="gender"
+                    v-validate="'required'"
+                    label="Select gender"
+                    :error-messages="errors.collect('gender')">
+                      <br>
+                      <v-radio label="male"
+                        value="male"
+                        color="success"
+                      ></v-radio>
+                      <v-radio label="female"
+                        value="female"
+                      ></v-radio>
+                    </v-radio-group>
+                    <!-- <a rel="nofollow" style="display:scroll;position:fixed;bottom:10px;center"> -->
+                      <v-btn color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
+                    <!-- </a> -->
+                    </v-flex>
+                  </v-layout>
+                </v-container>
+              </v-card-text>
+              <br>
+            </v-card>
+          </v-parallax>
+        </template>
+      </v-app>
+      <div class="registed" v-else>
+       <template>
+         <v-layout justify-space-around>
+           <v-icon color="success" x-large>done</v-icon>
+         </v-layout>
+       </template>
+       <h3>Register  {{$route.params.item}} success</h3>
+       <h3>Please close Page</h3>
       </div>
-
-    <div class="" v-else>
-         <h1>Register Success</h1>
-         <h1>Plese close Page</h1>
-    </div>
     </form>
   </div>
 </template>
@@ -64,16 +113,17 @@ export default {
   name: 'Register',
   data () {
     return {
+      modaldate: false,
       allProfile: '',
       allState: '',
       emailsDB: [],
       regSuccess: false,
-      firstName: '',
-      lastName: '',
-      email: '',
-      phoneNumber: '',
-      birtday: '',
-      gender: ''
+      firstName: null,
+      lastName: null,
+      email: null,
+      phoneNumber: null,
+      birthday: null,
+      gender: null
     }
   },
   methods: {
@@ -85,9 +135,7 @@ export default {
             this.$validator.reset()
           })
           this.postPost()
-          return
         }
-        alert('Correct them errors!')
       })
     },
     postPost () {
@@ -99,7 +147,7 @@ export default {
           lastName: this.lastName,
           email: this.email,
           phoneNumber: this.phoneNumber,
-          birtday: this.birtday,
+          birtday: this.birthday,
           gender: this.gender
         }
       })
@@ -169,6 +217,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+#inspire {
+  padding-top: 3%;
+}
 .field {
   margin-left: 2%;
   margin-right: 2%;
@@ -176,5 +227,8 @@ export default {
 .label {
   font-size: 16px;
   text-align: left;
+}
+.registed {
+  padding-top: 30%;
 }
 </style>
