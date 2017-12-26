@@ -7,20 +7,19 @@
           <v-container fluid>
             <v-layout row>
               <v-flex xs12>
-
                 <div v-if="!bookingSuccess">
                   Please Select {{$route.params.item}}
                   <!-- /////////////////////////////////////////////////////// -->
                   <div v-if="data.selectData.selectType === null">
                     <div class="" v-for="(item, key) in items">
-                      <v-btn color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn>
+                      <v-btn block color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn><br>
                     </div>
                   </div>
                   <!-- /////////////////////////////////////////////////////// -->
                   <div class="page2" v-if="data.selectData.selectType !== null">
                     <form @submit.prevent="validateBeforeSubmit">
                       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="วันที่เริ่มจอง" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Date Start" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
                         <v-date-picker v-model="data.selectData.dateStart" :allowed-dates= "allowedDatesStart" crollable actions>
                           <template slot-scope="{ save, cancel }">
                            <v-card-actions>
@@ -33,7 +32,7 @@
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-dialog persistent v-model="data.modals.modalTimeStart" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="เวลาที่เริ่มจอง" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required|overlaps'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Time Start" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required|overlaps'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
                         <v-time-picker format="24hr" v-model="data.selectData.timeStart" :allowed-hours="allowedTimesStart.hours" :allowed-minutes="allowedTimesStart.minutes" actions>
                           <template slot-scope="{ save, cancel }">
                             <v-card-actions>
@@ -45,7 +44,7 @@
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-dialog persistent v-model="data.modals.modalDateStop" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="จองถึงวันที่" :error-messages="errors.collect('date stop')" data-vv-name="date stop" v-validate="'required'" v-model="data.selectData.dateStop" prepend-icon="event" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Date Stop" :error-messages="errors.collect('date stop')" data-vv-name="date stop" v-validate="'required'" v-model="data.selectData.dateStop" prepend-icon="event" readonly></v-text-field>
                         <v-date-picker v-model="data.selectData.dateStop" :allowed-dates= "allowedDatesStop" scrollable actions>
                           <template slot-scope="{ save, cancel }">
                            <v-card-actions>
@@ -58,7 +57,7 @@
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-dialog persistent v-model="data.modals.modalTimeStop" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="เวลาสิ้นสุด" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required|overlaps'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Time Stop" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required|overlaps'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
                         <v-time-picker format="24hr" v-model="data.selectData.timeStop" :allowed-hours="allowedTimesStop.hours" :allowed-minutes="allowedTimesStop.minutes" actions>
                           <template slot-scope="{ save, cancel }">
                           <v-card-actions>
@@ -69,12 +68,13 @@
                         </v-time-picker>
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
-                      <v-text-field label="Count People" name="count-people" prepend-icon="people" v-model="countPeople"
-                        :error-messages="errors.collect('count people')"
-                        v-validate="'required|numeric|max:3'"
-                        data-vv-name="count people"
-                        v-show="this.$route.params.item === 'meetingroom'"
-                      ></v-text-field>
+                      <div v-if="this.$route.params.item === 'meetingroom'" >
+                        <v-text-field label="Count People" name="count-people" prepend-icon="people" v-model="countPeople"
+                          :error-messages="errors.collect('count people')"
+                          v-validate="'required|numeric|max:3'"
+                          data-vv-name="count people"
+                        ></v-text-field>
+                      </div>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-select label="Name Type Item" item-value="text" prepend-icon="map" v-bind:items="nameTypeCanUse" v-model="nameTypeItem"
                         :error-messages="errors.collect('Name Type Item')"
@@ -83,13 +83,16 @@
                         :disabled="showNameMenu"
                       ></v-select>
                         <!-- /////////////////////////////////////////////////////// -->
-                     <v-btn  color="primary" @click="validateBeforeSubmit()">SUBMIT</v-btn>
+                     <v-btn block color="primary" @click="validateBeforeSubmit()">SUBMIT</v-btn>
                     </form>
                   </div>
                 </div>
-                <div class="" v-else>
-                     <h1>Booking  {{$route.params.item}} Success</h1>
-                     <h1>Plese close Page</h1>
+                <div  v-else>
+                 <v-layout justify-space-around>
+                   <v-icon color="success" x-large>done</v-icon>
+                 </v-layout>
+                 <h3>Register  {{$route.params.item}} success</h3><br>
+                 <h3>Please close page</h3>
                 </div>
               </v-flex>
             </v-layout>
@@ -178,9 +181,8 @@ export default {
           this.$nextTick().then(() => {
             this.$validator.reset()
           })
-          alert('pass')
-          // this.pushBookingData()
-          // this.postPost()
+          this.pushBookingData()
+          this.postPost()
         }
       })
     },
