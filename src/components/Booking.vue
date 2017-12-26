@@ -8,7 +8,7 @@
             <v-layout row>
               <v-flex xs12>
                 <div v-if="!bookingSuccess">
-                  Please Select {{$route.params.item}}
+                  <h3>Please Select {{$route.params.item}}</h3><br>
                   <!-- /////////////////////////////////////////////////////// -->
                   <div v-if="data.selectData.selectType === null">
                     <div class="" v-for="(item, key) in items">
@@ -91,7 +91,7 @@
                  <v-layout justify-space-around>
                    <v-icon color="success" x-large>done</v-icon>
                  </v-layout>
-                 <h3>Register  {{$route.params.item}} success</h3><br>
+                 <h3>Booking  {{$route.params.item}} success</h3><br>
                  <h3>Please close page</h3>
                 </div>
               </v-flex>
