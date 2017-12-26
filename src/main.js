@@ -9,11 +9,9 @@ import Vuetify from 'vuetify'
 import VueFire from 'vuefire'
 
 Vue.use(Vuetify)
-Vue.use(VeeValidate)
 Vue.use(VueFire)
-
 Vue.config.productionTip = false
-
+Vue.use(VeeValidate)
 var config = {
   apiKey: 'AIzaSyAE2rQQye4hlRpDqAWirvyaaCExiaWA8DY',
   authDomain: 'fitm-coworkingspace.firebaseapp.com',
@@ -23,7 +21,6 @@ var config = {
   messagingSenderId: '181239315787'
 }
 firebase.initializeApp(config)
-
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

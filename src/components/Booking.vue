@@ -1,85 +1,108 @@
 <template>
 <div class="Booking">
-  <div v-if="!bookingSuccess">
-    Please Select {{$route.params.item}}
-    <!-- /////////////////////////////////////////////////////// -->
-    <div v-if="data.selectData.selectType === null">
-      <div class="" v-for="(item, key) in items">
-        Type Room = {{key}}
-        <v-btn color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn>
-      </div>
-    </div>
-    <!-- /////////////////////////////////////////////////////// -->
-    <div class="page2" v-if="data.selectData.selectType !== null">
-      <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
-        <v-text-field slot="activator" label="วันที่เริ่มจอง" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
-        <v-date-picker v-model="data.selectData.dateStart" scrollable actions>
-          <template slot-scope="{ save, cancel }">
-           <v-card-actions>
-             <v-spacer></v-spacer>
-             <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
-             <v-btn flat color="primary" @click="save">OK</v-btn>
-           </v-card-actions>
-         </template>
-        </v-date-picker>
-      </v-dialog>
-      <!-- /////////////////////////////////////////////////////// -->
-      <v-dialog persistent v-model="data.modals.modalTimeStart" lazy full-width width="290px">
-        <v-text-field slot="activator" label="เวลาที่เริ่มจอง" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
-        <v-time-picker format="24hr" v-model="data.selectData.timeStart" actions>
-          <template slot-scope="{ save, cancel }">
-            <v-card-actions>
-              <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
-              <v-btn flat color="primary" @click="save">Save</v-btn>
-            </v-card-actions>
-          </template>
-        </v-time-picker>
-      </v-dialog>
-      <!-- /////////////////////////////////////////////////////// -->
-
-      <v-dialog persistent v-model="data.modals.modalDateStop" lazy full-width width="290px">
-        <v-text-field slot="activator" label="จองถึงวันที่" v-model="data.selectData.dateStop" prepend-icon="event" readonly></v-text-field>
-        <v-date-picker v-model="data.selectData.dateStop" scrollable actions>
-          <template slot-scope="{ save, cancel }">
-           <v-card-actions>
-             <v-spacer></v-spacer>
-             <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
-             <v-btn flat color="primary" @click="save">OK</v-btn>
-           </v-card-actions>
-         </template>
-        </v-date-picker>
-      </v-dialog>
-
-      <!-- /////////////////////////////////////////////////////// -->
-      <v-dialog persistent v-model="data.modals.modalTimeStop" lazy full-width width="290px">
-        <v-text-field slot="activator" label="เวลาสิ้นสุด" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
-        <v-time-picker format="24hr" v-model="data.selectData.timeStop" actions>
-          <template slot-scope="{ save, cancel }">
-          <v-card-actions>
-            <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
-            <v-btn flat color="primary" @click="save">Save</v-btn>
-          </v-card-actions>
-        </template>
-        </v-time-picker>
-      </v-dialog>
-
-      <v-text-field prepend-icon="people" name="input-1" label="จำนวนผู้เข้าใช้งาน" v-model="countPeople"></v-text-field>
-
-      <div class="" v-if="testButton">
-        select name = {{nameTypeItem}}
-           <div v-for="name in nameTypeCanUse">
-             <v-btn color="primary" @click="nameTypeItem = name">{{name}}</v-btn>
-           </div>
-           <v-btn color="primary" v-if="nameTypeItem !== null" @click="pushBookingData()">SUBMIT</v-btn>
-      </div>
-    </div>
-  </div>
-  <div class="" v-else>
-       <h1>Booking  {{$route.params.item}} Success</h1>
-       <h1>Plese close Page</h1>
-  </div>
-
-
+  <template>
+    <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+      <v-card color="grey lighten-4" flat>
+        <v-card-text>
+          <v-container fluid>
+            <v-layout row>
+              <v-flex xs12>
+                <div v-if="!bookingSuccess">
+                  <h3>Please Select {{$route.params.item}}</h3><br>
+                  <!-- /////////////////////////////////////////////////////// -->
+                  <div v-if="data.selectData.selectType === null">
+                    <div class="" v-for="(item, key) in items">
+                      <v-btn block color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn><br>
+                    </div>
+                  </div>
+                  <!-- /////////////////////////////////////////////////////// -->
+                  <div class="page2" v-if="data.selectData.selectType !== null">
+                    <form @submit.prevent="validateBeforeSubmit">
+                      <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
+                        <v-text-field slot="activator" label="Date Start" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
+                        <v-date-picker v-model="data.selectData.dateStart" :allowed-dates= "allowedDatesStart" crollable actions>
+                          <template slot-scope="{ save, cancel }">
+                           <v-card-actions>
+                             <v-spacer></v-spacer>
+                             <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
+                             <v-btn flat color="primary" @click="save">OK</v-btn>
+                           </v-card-actions>
+                         </template>
+                        </v-date-picker>
+                      </v-dialog>
+                      <!-- /////////////////////////////////////////////////////// -->
+                      <v-dialog persistent v-model="data.modals.modalTimeStart" lazy full-width width="290px">
+                        <v-text-field slot="activator" label="Time Start" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required|overlaps'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
+                        <v-time-picker format="24hr" v-model="data.selectData.timeStart" :allowed-hours="allowedTimesStart.hours" :allowed-minutes="allowedTimesStart.minutes" actions>
+                          <template slot-scope="{ save, cancel }">
+                            <v-card-actions>
+                              <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
+                              <v-btn flat color="primary" @click="save">Save</v-btn>
+                            </v-card-actions>
+                          </template>
+                        </v-time-picker>
+                      </v-dialog>
+                      <!-- /////////////////////////////////////////////////////// -->
+                      <v-dialog persistent v-model="data.modals.modalDateStop" lazy full-width width="290px">
+                        <v-text-field slot="activator" label="Date Stop" :error-messages="errors.collect('date stop')" data-vv-name="date stop" v-validate="'required'" v-model="data.selectData.dateStop" prepend-icon="event" readonly></v-text-field>
+                        <v-date-picker v-model="data.selectData.dateStop" :allowed-dates= "allowedDatesStop" scrollable actions>
+                          <template slot-scope="{ save, cancel }">
+                           <v-card-actions>
+                             <v-spacer></v-spacer>
+                             <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
+                             <v-btn flat color="primary" @click="save">OK</v-btn>
+                           </v-card-actions>
+                         </template>
+                        </v-date-picker>
+                      </v-dialog>
+                      <!-- /////////////////////////////////////////////////////// -->
+                      <v-dialog persistent v-model="data.modals.modalTimeStop" lazy full-width width="290px">
+                        <v-text-field slot="activator" label="Time Stop" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required|overlaps'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
+                        <v-time-picker format="24hr" v-model="data.selectData.timeStop" :allowed-hours="allowedTimesStop.hours" :allowed-minutes="allowedTimesStop.minutes" actions>
+                          <template slot-scope="{ save, cancel }">
+                          <v-card-actions>
+                            <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
+                            <v-btn flat color="primary" @click="save">Save</v-btn>
+                          </v-card-actions>
+                        </template>
+                        </v-time-picker>
+                      </v-dialog>
+                      <!-- /////////////////////////////////////////////////////// -->
+                      <div v-if="this.$route.params.item === 'meetingroom'" >
+                        <v-text-field label="Count People" name="count-people" prepend-icon="people" v-model="countPeople"
+                          :error-messages="errors.collect('count people')"
+                          v-validate="'required|numeric|max:3'"
+                          data-vv-name="count people"
+                        ></v-text-field>
+                      </div>
+                      <!-- /////////////////////////////////////////////////////// -->
+                      <v-select label="Name Type Item" item-value="text" prepend-icon="map" v-bind:items="nameTypeCanUse" v-model="nameTypeItem"
+                        :error-messages="errors.collect('Name Type Item')"
+                        v-validate="'required'"
+                        data-vv-name="Name Type Item"
+                        :disabled="showNameMenu"
+                      ></v-select>
+                        <!-- /////////////////////////////////////////////////////// -->
+                     <v-btn block color="primary" @click="validateBeforeSubmit()">SUBMIT</v-btn>
+                    </form>
+                  </div>
+                </div>
+                <div  v-else>
+                 <v-layout justify-space-around>
+                   <v-icon color="success" x-large>done</v-icon>
+                 </v-layout>
+                 <h3>Booking  {{$route.params.item}} success</h3><br>
+                 <h3>Please close page</h3>
+                </div>
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-card-text>
+        <br>
+      </v-card>
+    </v-parallax>
+    </template>
+  </v-app>
 </div>
 </template>
 
@@ -90,12 +113,13 @@ import diff from 'lodash/difference'
 import Moment from 'moment'
 import momenTime from 'moment-timezone'
 import { extendMoment } from 'moment-range'
+import { Validator } from 'vee-validate'
 const moment = extendMoment(Moment)
 export default {
   name: 'Register',
   data () {
     return {
-      items: '',
+      items: null,
       data: {
         selectData: {
           selectType: null,
@@ -112,18 +136,55 @@ export default {
         }
       },
       countPeople: null,
-      testButton: false,
+      showNameMenu: true,
       nameTypeItem: null,
-      bookingData: '',
+      bookingData: null,
       nameTypeCanUse: [],
-      bookingSuccess: false
+      bookingSuccess: false,
+      allowedDatesStart: {
+        min: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD'),
+        max: null
+      },
+      allowedDatesStop: {
+        min: null,
+        max: null
+      },
+      allowedTimesStart: {
+        hours: { min: 0, max: 24 },
+        minutes: function (value) {
+          if (value % 5 === 0) {
+            return true
+          } else {
+            return false
+          }
+        }
+      },
+      allowedTimesStop: {
+        hours: { min: 0, max: 24 },
+        minutes: function (value) {
+          if (value % 5 === 0) {
+            return true
+          } else {
+            return false
+          }
+        }
+      },
+      oldVal: null
     }
   },
-  mounted () {
-    let vm = this
-    this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item), null, () => { delete this.items['.key'] })
-  },
+
   methods: {
+    validateBeforeSubmit () {
+      this.$validator.validateAll().then((result) => {
+        if (result) {
+          // eslint-disable-next-line
+          this.$nextTick().then(() => {
+            this.$validator.reset()
+          })
+          this.pushBookingData()
+        }
+      })
+    },
     postPost (newData) {
       axios.post(`https://fitmcoworkingspace.me/bookingSuccess`, {
         body: newData
@@ -140,7 +201,7 @@ export default {
     pushBookingData () {
       let myRef = firebase.database().ref('booking/').child(this.$route.params.item).child(this.data.selectData.selectType).child(this.nameTypeItem).push()
       let key = myRef.key
-      let newData = {
+      var newData = {
         id: key,
         childPart: `${this.$route.params.item}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
         nameTypeItem: this.nameTypeItem,
@@ -193,16 +254,52 @@ export default {
       const range2 = moment.range(checkdbStart, checkdbStop)
       // overlaps ถ้าเวลา ชนกัน จะคืนค่า true
       return range1.overlaps(range2)
+    },
+    checkOverlapsInputbox () {
+      // เช็คว่า เวลาใน Inputbox ในกรณี วันที่วันเดียวกัน แต่เวลา start มากกว่า stop ให้ return false
+      let format = 'YYYY-MM-DD HH:mm'
+      let inputStart = moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format)
+      let inputStop = moment(`${this.data.selectData.dateStop} ${this.data.selectData.timeStop}`, format)
+      return (inputStart.isBefore(inputStop))
     }
+  },
+  mounted () {
+    let vm = this
+    this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item), null, () => { delete this.items['.key'] })
+  },
+  created () {
+    const isOverlaps = value => new Promise((resolve) => {
+      setTimeout(() => {
+        // ถ้าวันที่เวลาสัมพันธ์กัน
+        if (this.checkOverlapsInputbox()) {
+          return resolve({
+            valid: true
+          })
+        }
+        return resolve({
+          valid: false,
+          data: {
+            message: `Date & time Not related.`
+          }
+        })
+      }, 200)
+    })
+    Validator.extend('overlaps', {
+      validate: isOverlaps,
+      getMessage: (field, params, data) => data.message
+    })
   },
   watch: {
     data: {
-      handler (val, oldVal) {
+      handler (val) {
         if (Object.values(val.selectData).every(x => x !== null) && Object.values(val.modals).every(x => x === false)) {
-          console.log('pass')
           this.checkNameTypeCanUse()
-          this.testButton = true
+          this.showNameMenu = false
         }
+        // DatesStop จะเลือกวันที่ได้น้อยสุดคือ วันที่เลือก dateStart
+        this.allowedDatesStop.min = val.selectData.dateStart
+        // DatesStart จะเลือกวันที่ได้มากสุด คือวันที่เลิอก  dateStop
+        this.allowedDatesStart.max = val.selectData.dateStop
       },
       deep: true
     }
