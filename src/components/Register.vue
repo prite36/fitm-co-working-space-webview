@@ -1,16 +1,15 @@
 <template>
   <div class="Register">
-    <form @submit.prevent="validateBeforeSubmit">
-      <v-app id="inspire" v-if="!regSuccess">
-        <template>
-          <h2 align="center">Registeration for {{this.$route.params.status}}</h2>
-          <br>
-          <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
-            <v-card color="grey lighten-4" flat>
-              <v-card-text>
-                <v-container fluid>
-                  <v-layout row>
-                    <v-flex xs12>
+    <template>
+      <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+        <v-card color="grey lighten-4" flat>
+          <v-card-text>
+            <v-container fluid>
+              <v-layout row>
+                <v-flex xs12>
+                  <div v-if="!regSuccess">
+                    <form @submit.prevent="validateBeforeSubmit">
+                      <h3>Register</h3>
                       <v-text-field
                         :error-messages="errors.collect('first_name')"
                         label="First name"
@@ -45,63 +44,59 @@
                         :error-messages="errors.collect('phone_number')"
                       ></v-text-field>
                       <v-dialog persistent v-model="modaldate" lazy full-width width="290px">
-                      <v-text-field
-                        slot="activator"
-                        label="Change date in dialog"
-                        v-model="birthday"
-                        prepend-icon="event"
-                        readonly
-                        name="birth_day"
-                        v-validate="'required'"
-                        :error-messages="errors.collect('birth_day')"
-                      ></v-text-field>
-                      <v-date-picker v-model="birthday" scrollable actions>
-                        <template slot-scope="{ save, cancel }">
-                          <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
-                            <v-btn flat color="primary" @click="save">OK</v-btn>
-                          </v-card-actions>
-                        </template>
-                      </v-date-picker>
-                    </v-dialog>
-                    <v-radio-group
-                    v-model="gender"
-                    name="gender"
-                    v-validate="'required'"
-                    label="Select gender"
-                    :error-messages="errors.collect('gender')">
-                      <br>
-                      <v-radio label="male"
-                        value="male"
-                        color="success"
-                      ></v-radio>
-                      <v-radio label="female"
-                        value="female"
-                      ></v-radio>
-                    </v-radio-group>
-                    <!-- <a rel="nofollow" style="display:scroll;position:fixed;bottom:10px;center"> -->
-                      <v-btn color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
-                    <!-- </a> -->
-                    </v-flex>
-                  </v-layout>
-                </v-container>
-              </v-card-text>
-              <br>
-            </v-card>
-          </v-parallax>
-        </template>
-      </v-app>
-      <div class="registed" v-else>
-       <template>
-         <v-layout justify-space-around>
-           <v-icon color="success" x-large>done</v-icon>
-         </v-layout>
-       </template>
-       <h3>Register  {{$route.params.item}} success</h3>
-       <h3>Please close Page</h3>
-      </div>
-    </form>
+                        <v-text-field
+                          slot="activator"
+                          label="Change date in dialog"
+                          v-model="birthday"
+                          prepend-icon="event"
+                          readonly
+                          name="birth_day"
+                          v-validate="'required'"
+                          :error-messages="errors.collect('birth_day')"
+                        ></v-text-field>
+                        <v-date-picker v-model="birthday" scrollable actions>
+                          <template slot-scope="{ save, cancel }">
+                            <v-card-actions>
+                              <v-spacer></v-spacer>
+                              <v-btn flat color="primary" @click="cancel">Cancel</v-btn>
+                              <v-btn flat color="primary" @click="save">OK</v-btn>
+                            </v-card-actions>
+                          </template>
+                        </v-date-picker>
+                      </v-dialog>
+                      <v-radio-group
+                      v-model="gender"
+                      name="gender"
+                      v-validate="'required'"
+                      label="Select gender"
+                      :error-messages="errors.collect('gender')">
+                        <br>
+                        <v-radio label="male"
+                          value="male"
+                          color="success"
+                        ></v-radio>
+                        <v-radio label="female"
+                          value="female"
+                        ></v-radio>
+                      </v-radio-group>
+                      <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
+                    </form>
+                  </div>
+                  <div v-else>
+                    <v-layout justify-space-around>
+                      <v-icon color="success" x-large>done</v-icon>
+                    </v-layout>
+                    <h3>Register  {{$route.params.item}} success</h3><br>
+                    <h3>Please close page</h3>
+                  </div>
+                </v-flex>
+              </v-layout>
+            </v-container>
+          </v-card-text>
+          <br>
+        </v-card>
+      </v-parallax>
+    </template>
   </div>
 </template>
 
