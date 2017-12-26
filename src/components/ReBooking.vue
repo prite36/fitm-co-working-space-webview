@@ -1,20 +1,39 @@
 <template>
 <div class="Booking">
-  <div v-if="!reBookingSuccess">
-    Please input time
-    <!-- /////////////////////////////////////////////////////// -->
-    <select v-model="selectedMinutes">
-      <option v-for="option in minutesOptions" v-bind:value="option.value">
-        {{ option.text }}
-      </option>
-    </select>
-    Minute
-    <v-btn color="primary" @click="changeBookingData()">Submit</v-btn>
-  </div>
-  <div class="" v-else>
-    <h1>Change Time  Success</h1>
-    <h1>Plese close Page</h1>
-  </div>
+  <template>
+      <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+        <v-card color="grey lighten-4" flat>
+          <v-card-text>
+            <v-container fluid>
+              <v-layout row>
+                <v-flex xs12>
+                  <div v-if="!reBookingSuccess">
+                    <form @submit.prevent="validateBeforeSubmit">
+                      <h3>Booking Continue</h3>
+                      <!-- /////////////////////////////////////////////////////// -->
+                      <v-select label="Please Select Minute" prepend-icon="access_time" :items="minutesOptions"   v-model="selectedMinutes"
+                        :error-messages="errors.collect('Minute')"
+                        v-validate="'required'"
+                        data-vv-name="Minute"
+                      ></v-select><br><br>
+                      <v-btn block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
+                    </form>
+                  </div>
+                  <div v-else>
+                    <v-layout justify-space-around>
+                      <v-icon color="success" x-large>done</v-icon>
+                    </v-layout>
+                    <h3>Booking Continue success</h3><br>
+                    <h3>Please close page</h3>
+                  </div>
+                </v-flex>
+              </v-layout>
+            </v-container>
+          </v-card-text>
+          <br>
+        </v-card>
+      </v-parallax>
+    </template>
 </div>
 </template>
 
@@ -40,6 +59,17 @@ export default {
     }
   },
   methods: {
+    validateBeforeSubmit () {
+      this.$validator.validateAll().then((result) => {
+        if (result) {
+          // eslint-disable-next-line
+          this.$nextTick().then(() => {
+            this.$validator.reset()
+          })
+          this.changeBookingData()
+        }
+      })
+    },
     postPost (timeChange) {
       axios.post(`https://fitmcoworkingspace.me/rebookingSuccess`, {
         body: {
@@ -103,7 +133,7 @@ export default {
       this.minutesOptions = []
       for (var i = 1; i <= minMinuteForReBooking; i++) {
         if (i % 5 === 0) {
-          this.minutesOptions.push({ text: `${i}`, value: i })
+          this.minutesOptions.push({ text: `${i} Minute`, value: i })
         }
       }
     }
