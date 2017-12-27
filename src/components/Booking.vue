@@ -8,15 +8,16 @@
             <v-layout row>
               <v-flex xs12>
                 <div v-if="!bookingSuccess">
-                  <h3>Please Select {{$route.params.item}}</h3><br>
                   <!-- /////////////////////////////////////////////////////// -->
                   <div v-if="data.selectData.selectType === null">
+                    <h3>Please Select {{$route.params.item}}</h3><br>
                     <div class="" v-for="(item, key) in items">
                       <v-btn block color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn><br>
                     </div>
                   </div>
                   <!-- /////////////////////////////////////////////////////// -->
                   <div class="page2" v-if="data.selectData.selectType !== null">
+                    <h3>Please Booking {{data.selectData.selectType}}</h3><br>
                     <form @submit.prevent="validateBeforeSubmit">
                       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
                         <v-text-field slot="activator" label="Date Start" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
