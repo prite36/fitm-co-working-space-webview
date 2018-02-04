@@ -18,6 +18,7 @@
                   <!-- /////////////////////////////////////////////////////// -->
                   <div class="page2" v-if="data.selectData.selectType !== null">
                     <h3>Please Booking {{data.selectData.selectType}}</h3><br>
+                    {{allowedDatesStart.max}}
                     <form @submit.prevent="validateBeforeSubmit">
                       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
                         <v-text-field slot="activator" label="Date Start" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
@@ -297,10 +298,23 @@ export default {
           this.checkNameTypeCanUse()
           this.showNameMenu = false
         }
-        // DatesStop จะเลือกวันที่ได้น้อยสุดคือ วันที่เลือก dateStart
-        this.allowedDatesStop.min = val.selectData.dateStart
-        // DatesStart จะเลือกวันที่ได้มากสุด คือวันที่เลิอก  dateStop
-        this.allowedDatesStart.max = val.selectData.dateStop
+        if (!val.selectData.dateStart) {
+          // ถ้า selectData.dateStart เป็น null ให้ DatesStart มากสุด วันนี้ +2เดือน
+          this.allowedDatesStart.max = Moment(momenTime().tz('Asia/Bangkok')).add(2, 'months').format('YYYY-MM-DD')
+        }
+        if (!val.selectData.dateStop) {
+          // ถ้า selectData.dateStop เป็น null ให้ DatesStop มากสุด วันนี้ +2เดือน
+          this.allowedDatesStop.max = Moment(momenTime().tz('Asia/Bangkok')).add(2, 'months').format('YYYY-MM-DD')
+        }
+        if (val.selectData.dateStart) {
+          // ถ้า selectData.dateStart มีค่า DatesStop จะเลือกวันที่ได้น้อยสุดคือ วันที่เลือก dateStart
+          this.allowedDatesStop.min = val.selectData.dateStart
+        }
+        if (val.selectData.dateStop) {
+          // ถ้า selectData.dateStop มีค่า DatesStart จะเลือกวันที่ได้มากสุด คือวันที่เลิอก  dateStop
+          this.allowedDatesStart.max = val.selectData.dateStop
+        }
+        // this.allowedDatesStart.max = Moment(momenTime().tz('Asia/Bangkok')).add(2, 'months').format('YYYY-MM-DD')
       },
       deep: true
     }
