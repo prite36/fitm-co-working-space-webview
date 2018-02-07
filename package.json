@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^0.17.0",
     "chart.js": "^2.7.1",
+    "chartjs": "^0.3.24",
     "chartkick": "^2.2.4",
     "firebase": "^4.6.2",
     "lodash": "^4.17.4",
