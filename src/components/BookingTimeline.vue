@@ -1,59 +1,68 @@
 <template>
   <div class="BookingTimeline">
-    <timeline :data="[
-      ['meet1', '2018-02-07 00:00 GMT+7', '2018-02-07 01:00 GMT+7'],
-      ['meet1', '2018-02-07 02:00 GMT+7', '2018-02-07 02:45 GMT+7'],
-      ['meet1', '2018-02-07 03:00 GMT+7', '2018-02-07 04:00 GMT+7'],
-      ['meet1', '2018-02-07 07:30 GMT+7', '2018-02-07 07:50 GMT+7'],
-      ['meet2', '2018-02-07 01:00 GMT+7', '2018-02-07 02:00 GMT+7'],
-      ['meet2', '2018-02-07 02:10 GMT+7', '2018-02-07 02:45 GMT+7'],
-      ['meet2', '2018-02-07 03:00 GMT+7', '2018-02-07 04:00 GMT+7'],
-      ['meet2', '2018-02-07 06:30 GMT+7', '2018-02-07 07:50 GMT+7'],
-      ['meet3', '2018-02-07 00:00 GMT+7', '2018-02-07 01:00 GMT+7'],
-      ['meet3', '2018-02-07 02:00 GMT+7', '2018-02-07 02:45 GMT+7'],
-      ['meet3', '2018-02-07 03:00 GMT+7', '2018-02-07 04:00 GMT+7'],
-      ['meet3', '2018-02-07 09:30 GMT+7', '2018-02-07 10:50 GMT+7'],
-    ]"></timeline>
-    <timeline :data="[
-      ['3DPrint1', '2018-02-07 00:00 GMT+7', '2018-02-07 24:00 GMT+7'],
-      ['3DPrint2', '2018-02-07 02:00 GMT+7', '2018-02-07 10:45 GMT+7'],
-      ['Lacercut1', '2018-02-07 09:00 GMT+7', '2018-02-07 15:00 GMT+7'],
-      ['Lacercut1', '2018-02-07 16:10 GMT+7', '2018-02-07 20:45 GMT+7'],
-    ]"></timeline>
+    <p>Device Booking Timeline</p>
+    <timeline class="device" :data="device"></timeline>
+    <p>Room Booking Timeline</p>
+    <timeline class="device" :data="room"></timeline>
+    {{device}}
+    {{room}}
   </div>
 </template>
 
 <script>
+import firebase from 'firebase'
+
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App',
-      email: '',
-      name: '',
-      phone: '',
-      url: ''
+      bookingDevice: null,
+      bookingRoom: null
     }
   },
   methods: {
-    validateForm (scope) {
-      this.$validator.validateAll(scope).then((result) => {
-        if (result) {
-          // eslint-disable-next-line
-          alert('Form Submitted!')
+  },
+  computed: {
+    device () {
+      let filteredDevice = []
+      for (var key1 in this.bookingDevice) {
+        for (var key2 in this.bookingDevice[key1]) {
+          for (var key3 in this.bookingDevice[key1][key2]) {
+            let pack = [
+              this.bookingDevice[key1][key2][key3].nameTypeItem,
+              this.bookingDevice[key1][key2][key3].dateStart + ' ' + this.bookingDevice[key1][key2][key3].timeStart + ' GMT+7',
+              this.bookingDevice[key1][key2][key3].dateStop + ' ' + this.bookingDevice[key1][key2][key3].timeStop + ' GMT+7'
+            ]
+            filteredDevice.push(pack)
+          }
         }
-      })
+      }
+      return filteredDevice
+    },
+    room () {
+      let filteredRoom = []
+      for (var key1 in this.bookingRoom) {
+        for (var key2 in this.bookingRoom[key1]) {
+          for (var key3 in this.bookingRoom[key1][key2]) {
+            let pack = [
+              this.bookingRoom[key1][key2][key3].nameTypeItem,
+              this.bookingRoom[key1][key2][key3].dateStart + ' ' + this.bookingRoom[key1][key2][key3].timeStart + ' GMT+7',
+              this.bookingRoom[key1][key2][key3].dateStop + ' ' + this.bookingRoom[key1][key2][key3].timeStop + ' GMT+7'
+            ]
+            filteredRoom.push(pack)
+          }
+        }
+      }
+      return filteredRoom
     }
+  },
+  mounted () {
+    this.$bindAsObject('bookingDevice', firebase.database().ref('booking/device'), null, () => { delete this.bookingDevice['.key'] })
+    this.$bindAsObject('bookingRoom', firebase.database().ref('booking/meetingroom'), null, () => { delete this.bookingRoom['.key'] })
   }
-  // computed: {
-  //   name () {
-  //     return `${this.first_name} ${this.last_name}`
-  //   }
-  // }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h1, h2 {
   font-weight: normal;
