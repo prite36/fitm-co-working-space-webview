@@ -46,15 +46,15 @@
                       <v-dialog persistent v-model="modaldate" lazy full-width width="290px">
                         <v-text-field
                           slot="activator"
-                          label="Change date in dialog"
-                          v-model="birthday"
+                          label="date of birth"
+                          v-model="dateOfBirth"
                           prepend-icon="event"
                           readonly
                           name="birth_day"
                           v-validate="'required'"
                           :error-messages="errors.collect('birth_day')"
                         ></v-text-field>
-                        <v-date-picker v-model="birthday" scrollable actions>
+                        <v-date-picker v-model="dateOfBirth" scrollable actions>
                           <template slot-scope="{ save, cancel }">
                             <v-card-actions>
                               <v-spacer></v-spacer>
@@ -117,7 +117,7 @@ export default {
       lastName: null,
       email: null,
       phoneNumber: null,
-      birthday: null,
+      dateOfBirth: null,
       gender: null
     }
   },
@@ -142,7 +142,7 @@ export default {
           lastName: this.lastName,
           email: this.email,
           phoneNumber: this.phoneNumber,
-          birtday: this.birthday,
+          dateOfBirth: this.dateOfBirth,
           gender: this.gender
         }
       })
