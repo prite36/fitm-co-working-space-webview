@@ -9,7 +9,7 @@
                 <v-flex xs12>
                   <div v-if="!regSuccess">
                     <form @submit.prevent="validateBeforeSubmit">
-                      <h3>Register</h3>
+                      <h3>Register {{$route.params.status}}</h3>
                       <v-text-field
                         :error-messages="errors.collect('first_name')"
                         label="First name"
