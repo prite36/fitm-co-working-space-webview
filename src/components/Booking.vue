@@ -8,15 +8,17 @@
             <v-layout row>
               <v-flex xs12>
                 <div v-if="!bookingSuccess">
-                  <h3>Please Select {{$route.params.item}}</h3><br>
                   <!-- /////////////////////////////////////////////////////// -->
                   <div v-if="data.selectData.selectType === null">
+                    <h3>Please Select {{$route.params.item}}</h3><br>
                     <div class="" v-for="(item, key) in items">
                       <v-btn block color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn><br>
                     </div>
                   </div>
                   <!-- /////////////////////////////////////////////////////// -->
                   <div class="page2" v-if="data.selectData.selectType !== null">
+                    <h3>Please Booking {{data.selectData.selectType}}</h3><br>
+                    {{allowedDatesStart.max}}
                     <form @submit.prevent="validateBeforeSubmit">
                       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
                         <v-text-field slot="activator" label="Date Start" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
@@ -182,16 +184,12 @@ export default {
             this.$validator.reset()
           })
           this.pushBookingData()
-          this.postPost()
         }
       })
     },
-    postPost () {
+    postPost (newData) {
       axios.post(`https://fitmcoworkingspace.me/bookingSuccess`, {
-        body: {
-          senderID: this.$route.params.senderID,
-          item: this.$route.params.item
-        }
+        body: newData
       })
       .then(response => {
         if (response.data === 'success') {
@@ -203,16 +201,22 @@ export default {
       })
     },
     pushBookingData () {
-      firebase.database().ref('booking/').child(this.$route.params.item).child(this.data.selectData.selectType).child(this.nameTypeItem).push({
-        userID: this.$route.params.senderID,
+      let myRef = firebase.database().ref('booking/').child(this.$route.params.item).child(this.data.selectData.selectType).child(this.nameTypeItem).push()
+      let key = myRef.key
+      var newData = {
+        id: key,
+        childPart: `${this.$route.params.item}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
+        nameTypeItem: this.nameTypeItem,
+        senderID: this.$route.params.senderID,
         dateStart: this.data.selectData.dateStart,
         timeStart: this.data.selectData.timeStart,
         dateStop: this.data.selectData.dateStop,
         timeStop: this.data.selectData.timeStop,
         countPeople: this.countPeople,
         timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
-      })
-      this.postPost()
+      }
+      myRef.update(newData)
+      this.postPost(newData)
     },
     checkNameTypeCanUse () {
       let vm = this
@@ -294,10 +298,23 @@ export default {
           this.checkNameTypeCanUse()
           this.showNameMenu = false
         }
-        // DatesStop จะเลือกวันที่ได้น้อยสุดคือ วันที่เลือก dateStart
-        this.allowedDatesStop.min = val.selectData.dateStart
-        // DatesStart จะเลือกวันที่ได้มากสุด คือวันที่เลิอก  dateStop
-        this.allowedDatesStart.max = val.selectData.dateStop
+        if (!val.selectData.dateStart) {
+          // ถ้า selectData.dateStart เป็น null ให้ DatesStart มากสุด วันนี้ +2เดือน
+          this.allowedDatesStart.max = Moment(momenTime().tz('Asia/Bangkok')).add(2, 'months').format('YYYY-MM-DD')
+        }
+        if (!val.selectData.dateStop) {
+          // ถ้า selectData.dateStop เป็น null ให้ DatesStop มากสุด วันนี้ +2เดือน
+          this.allowedDatesStop.max = Moment(momenTime().tz('Asia/Bangkok')).add(2, 'months').format('YYYY-MM-DD')
+        }
+        if (val.selectData.dateStart) {
+          // ถ้า selectData.dateStart มีค่า DatesStop จะเลือกวันที่ได้น้อยสุดคือ วันที่เลือก dateStart
+          this.allowedDatesStop.min = val.selectData.dateStart
+        }
+        if (val.selectData.dateStop) {
+          // ถ้า selectData.dateStop มีค่า DatesStart จะเลือกวันที่ได้มากสุด คือวันที่เลิอก  dateStop
+          this.allowedDatesStart.max = val.selectData.dateStop
+        }
+        // this.allowedDatesStart.max = Moment(momenTime().tz('Asia/Bangkok')).add(2, 'months').format('YYYY-MM-DD')
       },
       deep: true
     }
