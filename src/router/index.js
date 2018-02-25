@@ -5,6 +5,7 @@ import HelloWorld from '@/components/HelloWorld'
 import Register from '@/components/Register'
 import Booking from '@/components/Booking'
 import ReBooking from '@/components/ReBooking'
+import EditProfile from '@/components/EditProfile'
 Vue.use(Router)
 Vue.use(VeeValidate)
 
@@ -29,6 +30,11 @@ export default new Router({
       path: '/rebooking/:senderID/:bookingPart',
       name: 'ReBooking',
       component: ReBooking
+    },
+    {
+      path: '/editprofile/:senderID',
+      name: 'EditProfile',
+      component: EditProfile
     }
   ]
 })
