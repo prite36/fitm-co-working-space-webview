@@ -32,7 +32,7 @@ export default new Router({
       component: ReBooking
     },
     {
-      path: '/editprofile/:senderID',
+      path: '/editProfile/:senderID',
       name: 'EditProfile',
       component: EditProfile
     }
