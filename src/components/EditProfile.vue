@@ -131,7 +131,7 @@ export default {
       })
     },
     postPost () {
-      axios.post(`https://fitmcoworkingspace.me/`, {
+      axios.post(`https://fitmcoworkingspace.me/editProfile`, {
         body: {
           senderID: this.$route.params.senderID
         }
@@ -149,7 +149,7 @@ export default {
   created () {
   },
   beforeMount () {
-    this.$bindAsObject('userProfile', firebase.database().ref('profile').child('person').child(this.$route.params.senderID), null, () => {
+    this.$bindAsObject('userProfile', firebase.database().ref('profile').child('guest').child(this.$route.params.senderID), null, () => {
       this.firstName = this.userProfile.firstName
       this.lastName = this.userProfile.lastName
       this.phoneNumber = this.userProfile.phoneNumber
