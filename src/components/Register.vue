@@ -12,14 +12,14 @@
                       <h3>Register {{$route.params.status}}</h3>
                       <v-text-field
                         :error-messages="errors.collect('first_name')"
-                        label="First name"
+                        label="First Name"
                         v-model="firstName"
                         prepend-icon="account_box"
                         name="first_name"
                         v-validate="'required|alpha'"
                       ></v-text-field>
                       <v-text-field
-                        label="Last name"
+                        label="Last Name"
                         v-model="lastName"
                         prepend-icon="account_circle"
                         name="last_name"
@@ -27,7 +27,7 @@
                         v-validate="'required|alpha'"
                       ></v-text-field>
                       <v-text-field
-                        label="email"
+                        label="Email"
                         v-model="email"
                         prepend-icon="email"
                         v-validate="'required|email|unique'"
@@ -35,7 +35,7 @@
                         name="email"
                       ></v-text-field>
                       <v-text-field
-                        label="Phone number"
+                        label="Phone Number"
                         Pre-made="phone"
                         v-model="phoneNumber"
                         prepend-icon="contact_phone"
@@ -46,15 +46,15 @@
                       <v-dialog persistent v-model="modaldate" lazy full-width width="290px">
                         <v-text-field
                           slot="activator"
-                          label="Change date in dialog"
-                          v-model="birthday"
+                          label="Date Of Birth"
+                          v-model="dateOfBirth"
                           prepend-icon="event"
                           readonly
                           name="birth_day"
                           v-validate="'required'"
                           :error-messages="errors.collect('birth_day')"
                         ></v-text-field>
-                        <v-date-picker v-model="birthday" scrollable actions>
+                        <v-date-picker v-model="dateOfBirth" scrollable actions>
                           <template slot-scope="{ save, cancel }">
                             <v-card-actions>
                               <v-spacer></v-spacer>
@@ -68,14 +68,14 @@
                       v-model="gender"
                       name="gender"
                       v-validate="'required'"
-                      label="Select gender"
+                      label="Select Gender"
                       :error-messages="errors.collect('gender')">
                         <br>
-                        <v-radio label="male"
+                        <v-radio label="Male"
                           value="male"
                           color="success"
                         ></v-radio>
-                        <v-radio label="female"
+                        <v-radio label="Female"
                           value="female"
                         ></v-radio>
                       </v-radio-group>
@@ -117,7 +117,7 @@ export default {
       lastName: null,
       email: null,
       phoneNumber: null,
-      birthday: null,
+      dateOfBirth: null,
       gender: null
     }
   },
@@ -142,7 +142,7 @@ export default {
           lastName: this.lastName,
           email: this.email,
           phoneNumber: this.phoneNumber,
-          birtday: this.birthday,
+          dateOfBirth: this.dateOfBirth,
           gender: this.gender
         }
       })
