@@ -78,7 +78,7 @@
                     <v-layout justify-space-around>
                       <v-icon color="success" x-large>done</v-icon>
                     </v-layout>
-                    <h3>Register  {{$route.params.item}} success</h3><br>
+                    <h3>Edit Profile success</h3><br>
                     <h3>Please close page</h3>
                   </div>
                 </v-flex>
@@ -126,7 +126,7 @@ export default {
             dateOfBirth: this.dateOfBirth,
             gender: this.gender
           })
-          // this.postPost()
+          this.postPost()
         }
       })
     },
