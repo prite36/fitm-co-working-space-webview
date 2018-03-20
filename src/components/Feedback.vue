@@ -121,7 +121,7 @@ export default {
       }
     },
     pushCommentData () {
-      firebase.database().ref('comments/').push({
+      firebase.database().ref('feedbacks/').push({
         chatbotRating: this.chatbotRating,
         deviceRating: this.deviceRating,
         roomRating: this.roomRating,
