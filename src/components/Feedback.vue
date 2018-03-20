@@ -75,8 +75,9 @@
                     <v-layout justify-space-around>
                       <v-icon color="success" x-large>done</v-icon>
                     </v-layout>
-                    <h3>Feedback  {{$route.params.item}} success</h3><br>
+                    <h3>Thank you for feedback. We will improve this.</h3><br>
                     <h3>Please close page</h3>
+
                   </div>
                 </v-flex>
               </v-layout>
@@ -93,7 +94,6 @@
 import firebase from 'firebase'
 import momenTime from 'moment-timezone'
 import StarRating from 'vue-star-rating'
-import axios from 'axios'
 export default {
   name: 'Feedback',
   data () {
@@ -129,21 +129,20 @@ export default {
         comment: this.comment,
         timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
       })
-    },
-    postPost () {
-      axios.post(`https://fitmcoworkingspace.me/feedback`, {
-        body: {
-
-        }
-      })
-      .then(response => {
-        if (response.data === 'success') {
-          this.feedbackSuccess = true
-        }
-      })
-      .catch(error => {
-        console.log(error)
-      })
+    }
+  },
+  computed: {
+    /*
+      function นี้เอาไว้เช็ค โดยให้ผู้ใช้กด star บางตัว แล้วกดปุ่ม submit ถึงจะผ่าน
+      (!this.submitClick ค่าเริ่มต้นเป็น false)
+      - เปิดหน้าเว็บมาครั้งแรกเข้าเงื่อนไขเพราะ  !this.submitClick  = true
+      - ไม่กด star แล้วกด submit ไม่เข้าเงื่อนไขเพราะ !this.submitClick  = false
+      - ่กด star แล้วกด submit เข้าเงื่อนไขเพราะ  ตัวแปร Rating มีค่า
+    */
+    starValidate () {
+      if (this.chatbotRating || this.deviceRating || this.roomRating || this.serviceRating || !this.submitClick) {
+        return false  // ไม่แสดง alert
+      } else return true  // แสดง alert  ก็ต่อเมื่อ กดปุ่ม submit แล้วไม่ได้เลือก star feedback เลย
     }
   },
   created () {
@@ -151,20 +150,6 @@ export default {
   mounted () {
   },
   watch: {
-  },
-  computed: {
-    starValidate () {
-      /*
-        function นี้เอาไว้เช็ค โดยให้ผู้ใช้กด star บางตัว แล้วกดปุ่ม submit ถึงจะผ่าน
-        (!this.submitClick ค่าเริ่มต้นเป็น false)
-        - เปิดหน้าเว็บมาครั้งแรกเข้าเงื่อนไขเพราะ  !this.submitClick  = true
-        - ไม่กด star แล้วกด submit ไม่เข้าเงื่อนไขเพราะ !this.submitClick  = false
-        - ่กด star แล้วกด submit เข้าเงื่อนไขเพราะ  ตัวแปร Rating มีค่า
-      */
-      if (this.chatbotRating || this.deviceRating || this.roomRating || this.serviceRating || !this.submitClick) {
-        return false  // ไม่แสดง alert
-      } else return true  // แสดง alert  ก็ต่อเมื่อ กดปุ่ม submit แล้วไม่ได้เลือก star feedback เลย
-    }
   }
 }
 </script>
