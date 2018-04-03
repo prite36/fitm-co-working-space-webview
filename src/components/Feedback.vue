@@ -8,59 +8,65 @@
               <v-layout row >
                 <v-flex xs12>
                   <div v-if="!feedbackSuccess">
-                      <h3>Feedback {{$route.params.status}}</h3>
+                      <h3>Feedback{{$route.params.status}}</h3>
                       <v-alert type="warning"
                               :value="starValidate"
                               transition="scale-transition">
                               Please rate this feedback.
                       </v-alert>
-                      <div class="nameFeedback">
-                        Facebook Chatbot
-                      </div>
-                      <div class="star">
-                        <star-rating v-model="chatbotRating"
-                                     v-bind:increment='1'
-                                     v-bind:star-size='27'
-                                     v-bind:padding='3'
-                                     v-bind:show-rating='false'>
-                        </star-rating>
-                      </div>
+                      <v-container grid-list-ms text-xs-center>
+                        <v-layout row wrap>
+                          <v-flex xs12 flat="true" align-center="true">
+                            <v-card flat="true">Facebook Chatbot</v-card>
+                            <v-card flat="true">
+                              <star-rating  v-model="chatbotRating"
+                                            v-bind:increment='1'
+                                            v-bind:star-size='27'
+                                            v-bind:padding='3'
+                                            v-bind:show-rating='false'>
+                              </star-rating>
+                            </v-card>
+                          </v-flex>
 
-                      <div class="nameFeedback">
-                        Device
-                      </div>
-                      <div class="star">
-                        <star-rating v-model="deviceRating"
-                                     v-bind:increment='1'
-                                     v-bind:star-size='27'
-                                     v-bind:padding='3'
-                                     v-bind:show-rating='false'>
-                        </star-rating>
-                      </div>
+                          <v-flex xs12 flat="true">
+                            <v-card flat="true">Devices</v-card>
+                            <v-card flat="true">
+                              <star-rating  v-model="deviceRating"
+                                            v-bind:increment='1'
+                                            v-bind:star-size='27'
+                                            v-bind:padding='3'
+                                            v-bind:show-rating='false'>
+                              </star-rating>
+                            </v-card>
+                          </v-flex>
 
-                      <div class="nameFeedback">
-                        Room
-                      </div>
-                      <div class="star">
-                        <star-rating v-model="roomRating"
-                                     v-bind:increment='1'
-                                     v-bind:star-size='27'
-                                     v-bind:padding='3'
-                                     v-bind:show-rating='false'>
-                        </star-rating>
-                      </div>
+                          <v-flex xs12 flat="true" align-center="true">
+                            <v-card flat="true">Rooms</v-card>
+                            <v-card flat="true">
+                              <center><star-rating v-model="roomRating"
+                                           v-bind:increment='1'
+                                           v-bind:star-size='27'
+                                           v-bind:padding='3'
+                                           v-bind:show-rating='false'>
+                              </star-rating></center>
+                            </v-card>
+                          </v-flex>
 
-                      <div class="nameFeedback">
-                        Service
-                      </div>
-                      <div class="star">
-                        <star-rating v-model="serviceRating"
-                                     v-bind:increment='1'
-                                     v-bind:star-size='27'
-                                     v-bind:padding='3'
-                                     v-bind:show-rating='false'>
-                        </star-rating>
-                      </div>
+                          <v-flex xs12 flat="true" align-center="true">
+                            <v-card flat="true">Service</v-card>
+                            <v-card flat="true">
+                              <star-rating v-model="serviceRating"
+                                           v-bind:increment='1'
+                                           v-bind:star-size='27'
+                                           v-bind:padding='3'
+                                           v-bind:show-rating='false'>
+                              </star-rating>
+                            </v-card>
+                          </v-flex>
+
+                        </v-layout>
+                      </v-container>
+
                       Add a comment about the quality of support you received (optional)
                       <v-text-field name="input"
                                     label="Comment"
@@ -68,6 +74,7 @@
                                     rows="3"
                                     v-model="comment">
                       </v-text-field>
+
                       <br><br>
                       <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                   </div>
@@ -177,8 +184,7 @@ export default {
   padding: 5px 0px 5px 0px
 }
 .star {
-  float: left;
-  width: 55%;
+  text-align:center;
   /* border: 1px solid red; */
 }
 </style>
