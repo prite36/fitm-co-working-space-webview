@@ -7,7 +7,10 @@ import router from './router'
 import VeeValidate from 'vee-validate'
 import Vuetify from 'vuetify'
 import VueFire from 'vuefire'
+import {Rate} from 'element-ui'
+import locale from 'element-ui/lib/locale/lang/en'
 
+Vue.use(Rate, { locale })
 Vue.use(Vuetify)
 Vue.use(VueFire)
 Vue.config.productionTip = false
