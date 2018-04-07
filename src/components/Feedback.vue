@@ -67,7 +67,8 @@
                         </v-layout>
                       </v-container>
 
-                      {{testData}}Add a comment about the quality of support you received (optional)
+                      TEST2{{testData}}
+                      Add a comment about the quality of support you received (optional)
                       <v-text-field name="input"
                                     label="Comment"
                                     multi-line
@@ -77,6 +78,8 @@
 
                       <br><br>
                       <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
+                      <v-btn  block color="primary" @click="testSDK()">testSDK</v-btn>
+                      <v-btn  block color="primary" @click="closeWeb()">closeWeb</v-btn>
                   </div>
                   <div v-else>
                     <v-layout justify-space-around>
@@ -137,6 +140,27 @@ export default {
         comment: this.comment,
         timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
       })
+    },
+    testSDK () {
+      var vm = this
+      MessengerExtensions.getContext('170341890182672', //eslint-disable-line
+      function success (threadContext) {
+        vm.testData = threadContext
+        console.log(threadContext)
+      },
+      function error (err) {
+        vm.testData = err
+        console.log('error')
+        console.error(err)
+      })
+    },
+    closeWeb () {
+      MessengerExtensions.requestCloseBrowser(function success() { //eslint-disable-line
+      },
+      function error (err) {
+        console.error(err)
+        // an error occurred
+      })
     }
   },
   computed: {
@@ -156,19 +180,20 @@ export default {
   created () {
   },
   mounted () {
-    var vm = this
-    window.extAsyncInit = function () {
-      MessengerExtensions.getContext('170341890182672', //eslint-disable-line
-      function success (threadContext) {
-        vm.testData = threadContext
-        console.log(threadContext)
-      },
-      function error (err) {
-        vm.testData = err
-        console.log('error')
-        console.error(err)
-      })
-    }
+    window.extAsyncInit = function () {}
+    //   var vm = this
+    //   window.extAsyncInit = function () {
+    //   MessengerExtensions.getContext('170341890182672', //eslint-disable-line
+    //   function success (threadContext) {
+    //     vm.testData = threadContext
+    //     console.log(threadContext)
+    //   },
+    //   function error (err) {
+    //     vm.testData = err
+    //     console.log('error')
+    //     console.error(err)
+    //   })
+    // }
   },
   watch: {
   }
