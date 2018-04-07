@@ -67,7 +67,7 @@
                         </v-layout>
                       </v-container>
 
-                      Add a comment about the quality of support you received (optional)
+                      {{testData}}Add a comment about the quality of support you received (optional)
                       <v-text-field name="input"
                                     label="Comment"
                                     multi-line
@@ -111,7 +111,8 @@ export default {
       serviceRating: 0,
       comment: '',
       submitClick: false,
-      feedbackSuccess: false
+      feedbackSuccess: false,
+      testData: 0
     }
   },
   components: {
@@ -155,6 +156,19 @@ export default {
   created () {
   },
   mounted () {
+    var vm = this
+    window.extAsyncInit = function () {
+      MessengerExtensions.getContext('170341890182672', //eslint-disable-line
+      function success (threadContext) {
+        vm.testData = threadContext
+        console.log(threadContext)
+      },
+      function error (err) {
+        vm.testData = err
+        console.log('error')
+        console.error(err)
+      })
+    }
   },
   watch: {
   }

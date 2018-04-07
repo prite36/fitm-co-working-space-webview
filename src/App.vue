@@ -9,6 +9,12 @@
 <script>
 export default {
   name: 'app'
+  // mounted () {
+  //   window.extAsyncInit = function () {
+  //     console.log('55555')
+  //     // the Messenger Extensions JS SDK is done loading
+  //   }
+  // }
 }
 </script>
 <style lang="stylus">
