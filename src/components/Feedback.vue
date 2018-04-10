@@ -184,17 +184,15 @@ export default {
       vm.mainPage = 'content'
     },
     function error (err) {
-      // vm.threadContext = err
-      // vm.loadingPage = false
-      // vm.mainPage = 'error404'
-
-      // fake data
-      console.error(err)
+      vm.threadContext = err
       vm.loadingPage = false
-      vm.mainPage = 'content'
-      vm.threadContext = {
-        tid: '1411911565515632'
-      }
+      vm.mainPage = 'error404'
+
+      // // fake data
+      // console.error(err)
+      // vm.loadingPage = false
+      // vm.mainPage = 'content'
+      // vm.threadContext = {tid: '1411911565515632'}
     })
     }
   },
