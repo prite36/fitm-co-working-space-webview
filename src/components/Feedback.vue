@@ -1,24 +1,24 @@
 <template>
   <div class="Feedback">
     <template>
-      <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+      <v-parallax height="650" src="/static/doc-images/vbanner.jpg" v-loading.fullscreen.lock= "loadingPage" >
         <v-card color="grey lighten-4" flat>
           <v-card-text>
             <v-container fluid>
               <v-layout row >
                 <v-flex xs12>
-                  <div v-if="!feedbackSuccess">
+                  <div v-if="mainPage === 'content'">
                       <h3>Feedback{{$route.params.status}}</h3>
                       <v-alert type="warning"
                               :value="starValidate"
                               transition="scale-transition">
                               Please rate this feedback.
                       </v-alert>
-                      <v-container grid-list-ms text-xs-center>
-                        <v-layout row wrap>
-                          <v-flex xs12 flat="true" align-center="true">
-                            <v-card flat="true">Facebook Chatbot</v-card>
-                            <v-card flat="true">
+                      <v-container grid-list-ms text-xs-center >
+                        <v-layout row wrap >
+                          <v-flex xs12 flat align-center="true">
+                            <v-card flat>Facebook Chatbot</v-card>
+                            <v-card flat>
                               <star-rating  v-model="chatbotRating"
                                             v-bind:increment='1'
                                             v-bind:star-size='27'
@@ -28,9 +28,9 @@
                             </v-card>
                           </v-flex>
 
-                          <v-flex xs12 flat="true">
-                            <v-card flat="true">Devices</v-card>
-                            <v-card flat="true">
+                          <v-flex xs12 flat>
+                            <v-card flat>Devices</v-card>
+                            <v-card flat>
                               <star-rating  v-model="deviceRating"
                                             v-bind:increment='1'
                                             v-bind:star-size='27'
@@ -40,9 +40,9 @@
                             </v-card>
                           </v-flex>
 
-                          <v-flex xs12 flat="true" align-center="true">
-                            <v-card flat="true">Rooms</v-card>
-                            <v-card flat="true">
+                          <v-flex xs12 flat align-center="true">
+                            <v-card flat>Rooms</v-card>
+                            <v-card flat>
                               <center><star-rating v-model="roomRating"
                                            v-bind:increment='1'
                                            v-bind:star-size='27'
@@ -52,9 +52,9 @@
                             </v-card>
                           </v-flex>
 
-                          <v-flex xs12 flat="true" align-center="true">
-                            <v-card flat="true">Service</v-card>
-                            <v-card flat="true">
+                          <v-flex xs12 flat align-center="true">
+                            <v-card flat>Service</v-card>
+                            <v-card flat>
                               <star-rating v-model="serviceRating"
                                            v-bind:increment='1'
                                            v-bind:star-size='27'
@@ -67,7 +67,7 @@
                         </v-layout>
                       </v-container>
 
-                      TEST2{{testData}}
+
                       Add a comment about the quality of support you received (optional)
                       <v-text-field name="input"
                                     label="Comment"
@@ -78,16 +78,16 @@
 
                       <br><br>
                       <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
-                      <v-btn  block color="primary" @click="testSDK()">testSDK</v-btn>
-                      <v-btn  block color="primary" @click="closeWeb()">closeWeb</v-btn>
                   </div>
-                  <div v-else>
+                  <div v-if="mainPage === 'success'">
                     <v-layout justify-space-around>
                       <v-icon color="success" x-large>done</v-icon>
                     </v-layout>
                     <h3>Thank you for feedback. We will improve this.</h3><br>
-                    <h3>Please close page</h3>
-
+                  </div>
+                  <div v-if="mainPage === 'error404'">
+                    <h1>Error 404<br>
+                    Page Not Found</h1>
                   </div>
                 </v-flex>
               </v-layout>
@@ -114,8 +114,10 @@ export default {
       serviceRating: 0,
       comment: '',
       submitClick: false,
+      loadingPage: true,
+      mainPage: 'loading',
       feedbackSuccess: false,
-      testData: 0
+      threadContext: null
     }
   },
   components: {
@@ -125,42 +127,34 @@ export default {
     validateBeforeSubmit () {
       this.submitClick = true
       if (!this.starValidate) {
+        // Validate ผ่านแล้ว ให้ screen ขึ้น loading
+        this.loadingPage = true
         this.pushCommentData()
-        this.feedbackSuccess = true
       } else {
         this.alert = true
       }
     },
     pushCommentData () {
-      firebase.database().ref('comments/').push({
+      firebase.database().ref('feedbacks/').push({
         chatbotRating: this.chatbotRating,
         deviceRating: this.deviceRating,
         roomRating: this.roomRating,
         serviceRating: this.serviceRating,
         comment: this.comment,
         timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
-      })
-    },
-    testSDK () {
-      var vm = this
-      MessengerExtensions.getContext('170341890182672', //eslint-disable-line
-      function success (threadContext) {
-        vm.testData = threadContext
-        console.log(threadContext)
-      },
-      function error (err) {
-        vm.testData = err
-        console.log('error')
-        console.error(err)
+      }, (err) => {
+        if (!err) this.closeWeb()
       })
     },
     closeWeb () {
-      MessengerExtensions.requestCloseBrowser(function success() { //eslint-disable-line
-      },
-      function error (err) {
-        console.error(err)
-        // an error occurred
-      })
+      this.loadingPage = false
+      this.mainPage = 'success'
+      setTimeout(() => {
+        MessengerExtensions.requestCloseBrowser(() => { //eslint-disable-line
+        }, (err) => {
+          console.error(err)
+        })
+      }, 1500)
     }
   },
   computed: {
@@ -180,20 +174,29 @@ export default {
   created () {
   },
   mounted () {
-    window.extAsyncInit = function () {}
-    //   var vm = this
-    //   window.extAsyncInit = function () {
-    //   MessengerExtensions.getContext('170341890182672', //eslint-disable-line
-    //   function success (threadContext) {
-    //     vm.testData = threadContext
-    //     console.log(threadContext)
-    //   },
-    //   function error (err) {
-    //     vm.testData = err
-    //     console.log('error')
-    //     console.error(err)
-    //   })
-    // }
+    // window.extAsyncInit = function () {}
+    var vm = this
+    window.extAsyncInit = function () {
+    MessengerExtensions.getContext('170341890182672', //eslint-disable-line
+    function success (threadContext) {
+      vm.threadContext = threadContext
+      vm.loadingPage = false
+      vm.mainPage = 'content'
+    },
+    function error (err) {
+      // vm.threadContext = err
+      // vm.loadingPage = false
+      // vm.mainPage = 'error404'
+
+      // fake data
+      console.error(err)
+      vm.loadingPage = false
+      vm.mainPage = 'content'
+      vm.threadContext = {
+        tid: '1411911565515632'
+      }
+    })
+    }
   },
   watch: {
   }

@@ -7,6 +7,7 @@ import Booking from '@/components/Booking'
 import ReBooking from '@/components/ReBooking'
 import EditProfile from '@/components/EditProfile'
 import Feedback from '@/components/Feedback'
+
 Vue.use(Router)
 Vue.use(VeeValidate)
 
