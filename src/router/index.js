@@ -16,7 +16,7 @@ export default new Router({
       component: HelloWorld
     },
     {
-      path: '/register/:senderID/:status',
+      path: '/register/:status',
       name: 'Register',
       component: Register
     },
