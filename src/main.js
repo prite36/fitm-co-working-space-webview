@@ -7,10 +7,10 @@ import router from './router'
 import VeeValidate from 'vee-validate'
 import Vuetify from 'vuetify'
 import VueFire from 'vuefire'
-import {Rate} from 'element-ui'
+import ElementUI from 'element-ui'
 import locale from 'element-ui/lib/locale/lang/en'
 
-Vue.use(Rate, { locale })
+Vue.use(ElementUI, { locale })
 Vue.use(Vuetify)
 Vue.use(VueFire)
 Vue.config.productionTip = false
@@ -27,6 +27,15 @@ firebase.initializeApp(config)
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
+  created: function () {
+    (function (d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0] // eslint-disable-line
+      if (d.getElementById(id)) { return }
+      js = d.createElement(s); js.id = id
+      js.src = '//connect.facebook.com/en_US/messenger.Extensions.js'
+      fjs.parentNode.insertBefore(js, fjs)
+    }(document, 'script', 'Messenger'))
+  },
   router,
   template: '<App/>',
   components: { App }
