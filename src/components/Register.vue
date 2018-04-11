@@ -1,13 +1,13 @@
 <template>
   <div class="Register">
     <template>
-      <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+      <v-parallax height="650" src="/static/doc-images/vbanner.jpg" v-loading.fullscreen.lock= "loadingPage">
         <v-card color="grey lighten-4" flat>
           <v-card-text>
             <v-container fluid>
               <v-layout row>
                 <v-flex xs12>
-                  <div v-if="!regSuccess">
+                  <div v-if="mainPage === 'content'">
                     <form @submit.prevent="validateBeforeSubmit">
                       <h3>Register {{$route.params.status}}</h3>
                       <v-text-field
@@ -82,12 +82,9 @@
                       <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                     </form>
                   </div>
-                  <div v-else>
-                    <v-layout justify-space-around>
-                      <v-icon color="success" x-large>done</v-icon>
-                    </v-layout>
-                    <h3>Register  {{$route.params.item}} success</h3><br>
-                    <h3>Please close page</h3>
+                  <div v-if="mainPage === 'error404'">
+                    <h1>Error 404<br>
+                    Page Not Found</h1>
                   </div>
                 </v-flex>
               </v-layout>
@@ -108,11 +105,12 @@ export default {
   name: 'Register',
   data () {
     return {
+      loadingPage: true,
+      mainPage: '',
       modaldate: false,
       allProfile: '',
       allState: '',
       emailsDB: [],
-      regSuccess: false,
       firstName: null,
       lastName: null,
       email: null,
@@ -121,6 +119,7 @@ export default {
       gender: null
     }
   },
+  props: ['appID'],
   methods: {
     validateBeforeSubmit () {
       this.$validator.validateAll().then((result) => {
@@ -137,7 +136,7 @@ export default {
       axios.post(`https://fitmcoworkingspace.me/externalregister`, {
         body: {
           status: this.$route.params.status,
-          senderID: this.$route.params.senderID,
+          senderID: this.threadContext.tid,
           firstName: this.firstName,
           lastName: this.lastName,
           email: this.email,
@@ -148,11 +147,18 @@ export default {
       })
       .then(response => {
         if (response.data === 'success') {
-          this.regSuccess = true
+          this.closeWeb()
         }
       })
       .catch(error => {
-        console.log(error)
+        console.error(error)
+      })
+    },
+    closeWeb () {
+      this.loadingPage = false
+      MessengerExtensions.requestCloseBrowser(() => { //eslint-disable-line
+      }, (err) => {
+        console.error(err)
       })
     },
     getData () {
@@ -185,6 +191,26 @@ export default {
     })
   },
   mounted () {
+    var vm = this
+    window.extAsyncInit = function () {
+    MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+    function success (threadContext) {
+      vm.threadContext = threadContext
+      vm.loadingPage = false
+      vm.mainPage = 'content'
+    },
+    function error (err) {
+      vm.threadContext = err
+      vm.loadingPage = false
+      vm.mainPage = 'error404'
+
+      // // fake data
+      // console.error(err)
+      // vm.loadingPage = false
+      // vm.mainPage = 'content'
+      // vm.threadContext = {tid: '1411911565515632'}
+    })
+    }
   },
   watch: {
     allProfile () {
