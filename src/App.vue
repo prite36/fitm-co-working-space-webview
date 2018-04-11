@@ -1,20 +1,19 @@
 <template>
   <div id="app">
     <v-app>
-    <router-view/>
+    <router-view :appID="appID"></router-view>
   </v-app>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'app'
-  // mounted () {
-  //   window.extAsyncInit = function () {
-  //     console.log('55555')
-  //     // the Messenger Extensions JS SDK is done loading
-  //   }
-  // }
+  name: 'app',
+  data () {
+    return {
+      appID: 170341890182672
+    }
+  }
 }
 </script>
 <style lang="stylus">

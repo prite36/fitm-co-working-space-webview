@@ -116,13 +116,13 @@ export default {
       submitClick: false,
       loadingPage: true,
       mainPage: 'loading',
-      feedbackSuccess: false,
       threadContext: null
     }
   },
   components: {
     StarRating
   },
+  props: ['appID'],
   methods: {
     validateBeforeSubmit () {
       this.submitClick = true
@@ -177,7 +177,7 @@ export default {
     // window.extAsyncInit = function () {}
     var vm = this
     window.extAsyncInit = function () {
-    MessengerExtensions.getContext('170341890182672', //eslint-disable-line
+    MessengerExtensions.getContext(vm.appID, //eslint-disable-line
     function success (threadContext) {
       vm.threadContext = threadContext
       vm.loadingPage = false
