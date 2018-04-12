@@ -80,6 +80,7 @@
                         ></v-radio>
                       </v-radio-group>
                       <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
+                      Test{{testData}}
                     </form>
                   </div>
                   <div v-if="mainPage === 'error404'">
@@ -116,7 +117,8 @@ export default {
       email: null,
       phoneNumber: null,
       dateOfBirth: null,
-      gender: null
+      gender: null,
+      testData: null
     }
   },
   props: ['appID'],
@@ -161,14 +163,41 @@ export default {
         console.error(err)
       })
     },
-    getData () {
+    getDataAndSDK () {
       this.$bindAsObject('allProfile', firebase.database().ref('profile'), null)
-      this.$bindAsObject('allState', firebase.database().ref('state'), null)
+      let getallState = new Promise(resolve => {
+        this.$bindAsObject('allState', firebase.database().ref('state'), null, () => {
+          resolve()
+        })
+      })
+
+      let getSDK = new Promise((resolve, reject) => {
+        var vm = this
+        window.extAsyncInit = function () {
+          MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+          function success (threadContext) {
+            resolve(threadContext)
+            // vm.threadContext = threadContext
+            // vm.loadingPage = false
+            // vm.mainPage = 'content'
+          },
+          function error (err) {
+            reject(err)
+            // vm.threadContext = err
+            // vm.loadingPage = false
+            // vm.mainPage = 'error404'
+          })
+        }
+      })
+      Promise.all([getSDK, getallState]).then(values => {
+        this.testData = values
+        console.log(values)
+      }).catch(reason => {
+        console.log(reason)
+      })
     }
   },
   created () {
-    // ดึงข้อมูล profile 1 ครั้ง
-    this.getData()
     // เช็ค Email
     const isUnique = value => new Promise((resolve) => {
       setTimeout(() => {
@@ -191,26 +220,32 @@ export default {
     })
   },
   mounted () {
-    var vm = this
-    window.extAsyncInit = function () {
-    MessengerExtensions.getContext(vm.appID, //eslint-disable-line
-    function success (threadContext) {
-      vm.threadContext = threadContext
-      vm.loadingPage = false
-      vm.mainPage = 'content'
-    },
-    function error (err) {
-      vm.threadContext = err
-      vm.loadingPage = false
-      vm.mainPage = 'error404'
-
-      // // fake data
-      // console.error(err)
-      // vm.loadingPage = false
-      // vm.mainPage = 'content'
-      // vm.threadContext = {tid: '1411911565515632'}
-    })
-    }
+    this.getDataAndSDK()
+    // var vm = this
+    // window.extAsyncInit = function () {
+    //   MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+    //   function success (threadContext) {
+    //     vm.threadContext = threadContext
+    //     vm.loadingPage = false
+    //     vm.mainPage = 'content'
+    //   },
+    //   function error (err) {
+    //     // ดึงข้อมูล profile 1 ครั้ง
+    //     vm.getData().then(success => {
+    //       console.log(`sdk ${vm.allState[1619061264805307].status}`)
+    //     })
+    //     // console.log(`sdk ${vm.allState[1619061264805307]}`)
+    //     vm.threadContext = err
+    //     vm.loadingPage = false
+    //     vm.mainPage = 'error404'
+    //
+    //     // // fake data
+    //     // console.error(err)
+    //     // vm.loadingPage = false
+    //     // vm.mainPage = 'content'
+    //     // vm.threadContext = {tid: '1411911565515632'}
+    //   })
+    // }
   },
   watch: {
     allProfile () {
