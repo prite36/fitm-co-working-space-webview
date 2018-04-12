@@ -109,10 +109,12 @@ export default {
     return {
       loadingPage: true,
       mainPage: '',
+      threadContext: null,
       modaldate: false,
       allProfile: '',
       allState: '',
-      emailsDB: [],
+      userID_DB: [],
+      emails_DB: [],
       firstName: null,
       lastName: null,
       email: null,
@@ -166,25 +168,23 @@ export default {
     },
     Re_registerCheck () {
       // เอา tid จาก FB เช็คใน allState ว่า User คนนี้เคยสมัคสมาชิกแล้วหรือยัง
-      // เช็คใน allState ทุกตัว ถ้า id ตรงกัน คืนค่า fasle
-      let check = this.allState.some(value => {
-        return value.key !== this.threadContext.tid
-      })
-      // ถ้า check = true หมาายความว่า User ยังไม่เคยสมัครสมาชิก
-      if (check) {
-        this.loadingPage = false
-        this.mainPage = 'content'
-        this.testData = 'No Re_register'
-      } else {
+      // ถ้า id ตรงกัน คืนค่า true
+      let findID = this.userID_DB.includes(this.threadContext[0].tid)
+      // ถ้า check = true หมาายความว่า User เคยสมัครสมาชิกไปแล้ว
+      if (findID) {
         this.loadingPage = false
         this.mainPage = 'content'
         this.testData = 'You registered'
+      } else {
+        this.loadingPage = false
+        this.mainPage = 'content'
+        this.testData = 'No Re_register' + this.threadContext[0].tid
       }
     },
     getDataAndSDK () {
-      this.$bindAsObject('allProfile', firebase.database().ref('profile'), null)
-      let getallState = new Promise(resolve => {
-        this.$bindAsObject('allState', firebase.database().ref('state'), null, () => {
+      this.$bindAsObject('allState', firebase.database().ref('state'), null)
+      let getAllProfile = new Promise(resolve => {
+        this.$bindAsObject('allProfile', firebase.database().ref('profile'), null, () => {
           resolve()
         })
       })
@@ -201,12 +201,12 @@ export default {
           })
         }
       })
-      Promise.all([getSDK, getallState]).then(values => {
+      Promise.all([getSDK, getAllProfile]).then(values => {
         this.threadContext = values
         this.Re_registerCheck()
         console.log(values)
       }).catch(reason => {
-        this.threadContext = reason
+        this.threadContext = 'error ' + reason
         this.loadingPage = false
         this.mainPage = 'error404'
         console.log(reason)
@@ -217,7 +217,7 @@ export default {
     // เช็ค Email
     const isUnique = value => new Promise((resolve) => {
       setTimeout(() => {
-        if (this.emailsDB.indexOf(value) === -1) {
+        if (this.emails_DB.indexOf(value) === -1) {
           return resolve({
             valid: true
           })
@@ -241,20 +241,21 @@ export default {
   watch: {
     allProfile () {
       delete this.allProfile['.key']
-      // ดึงแค่ email เก็บใน emailsDB
+      // ดึงแค่ email เก็บใน emails_DB
       for (let status in this.allProfile) {
         for (let id in this.allProfile[status]) {
-          this.emailsDB.push(this.allProfile[status][id].email)
+          this.userID_DB.push(id)
+          this.emails_DB.push(this.allProfile[status][id].email)
         }
       }
     },
     allState () {
       delete this.allState['.key']
-      // ดึงแค่ email เก็บใน emailsDB
+      // ดึงแค่ email เก็บใน emails_DB
       for (let id in this.allState) {
         // ถ้า id นั้นเป็น object ที่มี   data:
         if (this.allState[id].data) {
-          this.emailsDB.push(this.allState[id].data.email)
+          this.emails_DB.push(this.allState[id].data.email)
         }
       }
     }
