@@ -86,6 +86,7 @@
                   <div v-if="mainPage === 'error404'">
                     <h1>Error 404<br>
                     Page Not Found</h1>
+                    {{threadContext}}
                   </div>
                 </v-flex>
               </v-layout>
@@ -163,6 +164,23 @@ export default {
         console.error(err)
       })
     },
+    Re_registerCheck () {
+      // เอา tid จาก FB เช็คใน allState ว่า User คนนี้เคยสมัคสมาชิกแล้วหรือยัง
+      // เช็คใน allState ทุกตัว ถ้า id ตรงกัน คืนค่า fasle
+      let check = this.allState.some(value => {
+        return value.key !== this.threadContext.tid
+      })
+      // ถ้า check = true หมาายความว่า User ยังไม่เคยสมัครสมาชิก
+      if (check) {
+        this.loadingPage = false
+        this.mainPage = 'content'
+        this.testData = 'No Re_register'
+      } else {
+        this.loadingPage = false
+        this.mainPage = 'content'
+        this.testData = 'You registered'
+      }
+    },
     getDataAndSDK () {
       this.$bindAsObject('allProfile', firebase.database().ref('profile'), null)
       let getallState = new Promise(resolve => {
@@ -177,22 +195,20 @@ export default {
           MessengerExtensions.getContext(vm.appID, //eslint-disable-line
           function success (threadContext) {
             resolve(threadContext)
-            // vm.threadContext = threadContext
-            // vm.loadingPage = false
-            // vm.mainPage = 'content'
           },
           function error (err) {
             reject(err)
-            // vm.threadContext = err
-            // vm.loadingPage = false
-            // vm.mainPage = 'error404'
           })
         }
       })
       Promise.all([getSDK, getallState]).then(values => {
-        this.testData = values
+        this.threadContext = values
+        this.Re_registerCheck()
         console.log(values)
       }).catch(reason => {
+        this.threadContext = reason
+        this.loadingPage = false
+        this.mainPage = 'error404'
         console.log(reason)
       })
     }
@@ -221,31 +237,6 @@ export default {
   },
   mounted () {
     this.getDataAndSDK()
-    // var vm = this
-    // window.extAsyncInit = function () {
-    //   MessengerExtensions.getContext(vm.appID, //eslint-disable-line
-    //   function success (threadContext) {
-    //     vm.threadContext = threadContext
-    //     vm.loadingPage = false
-    //     vm.mainPage = 'content'
-    //   },
-    //   function error (err) {
-    //     // ดึงข้อมูล profile 1 ครั้ง
-    //     vm.getData().then(success => {
-    //       console.log(`sdk ${vm.allState[1619061264805307].status}`)
-    //     })
-    //     // console.log(`sdk ${vm.allState[1619061264805307]}`)
-    //     vm.threadContext = err
-    //     vm.loadingPage = false
-    //     vm.mainPage = 'error404'
-    //
-    //     // // fake data
-    //     // console.error(err)
-    //     // vm.loadingPage = false
-    //     // vm.mainPage = 'content'
-    //     // vm.threadContext = {tid: '1411911565515632'}
-    //   })
-    // }
   },
   watch: {
     allProfile () {
