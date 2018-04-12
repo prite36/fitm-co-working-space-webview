@@ -80,11 +80,13 @@
                         ></v-radio>
                       </v-radio-group>
                       <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
+                      Test{{testData}}
                     </form>
                   </div>
                   <div v-if="mainPage === 'error404'">
                     <h1>Error 404<br>
                     Page Not Found</h1>
+                    {{threadContext}}
                   </div>
                 </v-flex>
               </v-layout>
@@ -107,16 +109,19 @@ export default {
     return {
       loadingPage: true,
       mainPage: '',
+      threadContext: null,
       modaldate: false,
       allProfile: '',
       allState: '',
-      emailsDB: [],
+      userID_DB: [],
+      emails_DB: [],
       firstName: null,
       lastName: null,
       email: null,
       phoneNumber: null,
       dateOfBirth: null,
-      gender: null
+      gender: null,
+      testData: null
     }
   },
   props: ['appID'],
@@ -161,18 +166,58 @@ export default {
         console.error(err)
       })
     },
-    getData () {
-      this.$bindAsObject('allProfile', firebase.database().ref('profile'), null)
+    Re_registerCheck () {
+      // เอา tid จาก FB เช็คใน allState ว่า User คนนี้เคยสมัคสมาชิกแล้วหรือยัง
+      // ถ้า id ตรงกัน คืนค่า true
+      let findID = this.userID_DB.includes(this.threadContext[0].tid)
+      // ถ้า check = true หมาายความว่า User เคยสมัครสมาชิกไปแล้ว
+      if (findID) {
+        this.loadingPage = false
+        this.mainPage = 'content'
+        this.testData = 'You registered'
+      } else {
+        this.loadingPage = false
+        this.mainPage = 'content'
+        this.testData = 'No Re_register' + this.threadContext[0].tid
+      }
+    },
+    getDataAndSDK () {
       this.$bindAsObject('allState', firebase.database().ref('state'), null)
+      let getAllProfile = new Promise(resolve => {
+        this.$bindAsObject('allProfile', firebase.database().ref('profile'), null, () => {
+          resolve()
+        })
+      })
+
+      let getSDK = new Promise((resolve, reject) => {
+        var vm = this
+        window.extAsyncInit = function () {
+          MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+          function success (threadContext) {
+            resolve(threadContext)
+          },
+          function error (err) {
+            reject(err)
+          })
+        }
+      })
+      Promise.all([getSDK, getAllProfile]).then(values => {
+        this.threadContext = values
+        this.Re_registerCheck()
+        console.log(values)
+      }).catch(reason => {
+        this.threadContext = 'error ' + reason
+        this.loadingPage = false
+        this.mainPage = 'error404'
+        console.log(reason)
+      })
     }
   },
   created () {
-    // ดึงข้อมูล profile 1 ครั้ง
-    this.getData()
     // เช็ค Email
     const isUnique = value => new Promise((resolve) => {
       setTimeout(() => {
-        if (this.emailsDB.indexOf(value) === -1) {
+        if (this.emails_DB.indexOf(value) === -1) {
           return resolve({
             valid: true
           })
@@ -191,44 +236,26 @@ export default {
     })
   },
   mounted () {
-    var vm = this
-    window.extAsyncInit = function () {
-    MessengerExtensions.getContext(vm.appID, //eslint-disable-line
-    function success (threadContext) {
-      vm.threadContext = threadContext
-      vm.loadingPage = false
-      vm.mainPage = 'content'
-    },
-    function error (err) {
-      vm.threadContext = err
-      vm.loadingPage = false
-      vm.mainPage = 'error404'
-
-      // // fake data
-      // console.error(err)
-      // vm.loadingPage = false
-      // vm.mainPage = 'content'
-      // vm.threadContext = {tid: '1411911565515632'}
-    })
-    }
+    this.getDataAndSDK()
   },
   watch: {
     allProfile () {
       delete this.allProfile['.key']
-      // ดึงแค่ email เก็บใน emailsDB
+      // ดึงแค่ email เก็บใน emails_DB
       for (let status in this.allProfile) {
         for (let id in this.allProfile[status]) {
-          this.emailsDB.push(this.allProfile[status][id].email)
+          this.userID_DB.push(id)
+          this.emails_DB.push(this.allProfile[status][id].email)
         }
       }
     },
     allState () {
       delete this.allState['.key']
-      // ดึงแค่ email เก็บใน emailsDB
+      // ดึงแค่ email เก็บใน emails_DB
       for (let id in this.allState) {
         // ถ้า id นั้นเป็น object ที่มี   data:
         if (this.allState[id].data) {
-          this.emailsDB.push(this.allState[id].data.email)
+          this.emails_DB.push(this.allState[id].data.email)
         }
       }
     }
