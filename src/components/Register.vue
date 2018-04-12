@@ -80,13 +80,17 @@
                         ></v-radio>
                       </v-radio-group>
                       <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
-                      Test{{testData}}
                     </form>
+                  </div>
+                  <div v-if="mainPage === 'Re_register'">
+                    <v-layout justify-space-around>
+                      <v-icon color="red darken-1" x-large>error</v-icon>
+                    </v-layout>
+                    <h1>You have already registered.</h1>
                   </div>
                   <div v-if="mainPage === 'error404'">
                     <h1>Error 404<br>
                     Page Not Found</h1>
-                    {{threadContext}}
                   </div>
                 </v-flex>
               </v-layout>
@@ -120,8 +124,7 @@ export default {
       email: null,
       phoneNumber: null,
       dateOfBirth: null,
-      gender: null,
-      testData: null
+      gender: null
     }
   },
   props: ['appID'],
@@ -133,6 +136,7 @@ export default {
           this.$nextTick().then(() => {
             this.$validator.reset()
           })
+          this.loadingPage = true
           this.postPost()
         }
       })
@@ -141,7 +145,7 @@ export default {
       axios.post(`https://fitmcoworkingspace.me/externalregister`, {
         body: {
           status: this.$route.params.status,
-          senderID: this.threadContext.tid,
+          senderID: this.threadContext[0].tid,
           firstName: this.firstName,
           lastName: this.lastName,
           email: this.email,
@@ -152,34 +156,31 @@ export default {
       })
       .then(response => {
         if (response.data === 'success') {
-          this.closeWeb()
+          this.closeWeb(0)
         }
       })
       .catch(error => {
         console.error(error)
       })
     },
-    closeWeb () {
+    closeWeb (delay) {
       this.loadingPage = false
-      MessengerExtensions.requestCloseBrowser(() => { //eslint-disable-line
-      }, (err) => {
-        console.error(err)
-      })
+      setTimeout(() => {
+        MessengerExtensions.requestCloseBrowser(() => {}, () => {}) //eslint-disable-line
+      }, delay)
     },
     Re_registerCheck () {
       // เอา tid จาก FB เช็คใน allState ว่า User คนนี้เคยสมัคสมาชิกแล้วหรือยัง
       // ถ้า id ตรงกัน คืนค่า true
       let findID = this.userID_DB.includes(this.threadContext[0].tid)
-      // ถ้า check = true หมาายความว่า User เคยสมัครสมาชิกไปแล้ว
+      // ถ้า findID = true หมายความว่า User เคยสมัครสมาชิกไปแล้ว
       if (findID) {
-        this.loadingPage = false
-        this.mainPage = 'content'
-        this.testData = 'You registered'
+        this.mainPage = 'Re_register'
+        this.closeWeb(2000)
       } else {
-        this.loadingPage = false
         this.mainPage = 'content'
-        this.testData = 'No Re_register' + this.threadContext[0].tid
       }
+      this.loadingPage = false
     },
     getDataAndSDK () {
       this.$bindAsObject('allState', firebase.database().ref('state'), null)
@@ -204,12 +205,10 @@ export default {
       Promise.all([getSDK, getAllProfile]).then(values => {
         this.threadContext = values
         this.Re_registerCheck()
-        console.log(values)
       }).catch(reason => {
-        this.threadContext = 'error ' + reason
+        this.threadContext = reason
         this.loadingPage = false
         this.mainPage = 'error404'
-        console.log(reason)
       })
     }
   },
