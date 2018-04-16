@@ -24,17 +24,17 @@ export default new Router({
       component: Register
     },
     {
-      path: '/booking/:senderID/:item',
+      path: '/booking/:item',
       name: 'Booking',
       component: Booking
     },
     {
-      path: '/rebooking/:senderID/:bookingPart',
+      path: '/rebooking/:bookingPart',
       name: 'ReBooking',
       component: ReBooking
     },
     {
-      path: '/editProfile/:senderID',
+      path: '/editProfile',
       name: 'EditProfile',
       component: EditProfile
     },
