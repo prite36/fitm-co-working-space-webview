@@ -34,7 +34,7 @@
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-dialog persistent v-model="data.modals.modalTimeStart" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="Time Start" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required|overlaps'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Time Start" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required|overlaps|timeStartAfterTimeNow'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
                         <v-time-picker format="24hr" v-model="data.selectData.timeStart" :allowed-hours="allowedTimesStart.hours" :allowed-minutes="allowedTimesStart.minutes" actions>
                           <template slot-scope="{ save, cancel }">
                             <v-card-actions>
@@ -258,11 +258,23 @@ export default {
       return range1.overlaps(range2)
     },
     checkOverlapsInputbox () {
-      // เช็คว่า เวลาใน Inputbox ในกรณี วันที่วันเดียวกัน แต่เวลา start มากกว่า stop ให้ return false
+      // ถ้า selectData ทุกตัว ไม่เท่ากับ null ถึงจะเช็ค validate
+      if (Object.values(this.data.selectData).every(x => x !== null)) {
+        // เช็คว่า เวลาใน Inputbox ในกรณี วันที่วันเดียวกัน แต่เวลา start มากกว่า stop ให้ return false
+        let format = 'YYYY-MM-DD HH:mm'
+        let inputStart = moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format)
+        let inputStop = moment(`${this.data.selectData.dateStop} ${this.data.selectData.timeStop}`, format)
+        return inputStart.isBefore(inputStop)
+      } else {
+        return true
+      }
+    },
+    checkTimeStartAfterTimeNow () {
+      // เวลาเริ่มจองต้อง >= เวลาปัจจุบัน
       let format = 'YYYY-MM-DD HH:mm'
       let inputStart = moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format)
-      let inputStop = moment(`${this.data.selectData.dateStop} ${this.data.selectData.timeStop}`, format)
-      return (inputStart.isBefore(inputStop))
+      let query = inputStart.isSameOrAfter(momenTime().tz('Asia/Bangkok'))
+      return query
     }
   },
   mounted () {
@@ -281,13 +293,33 @@ export default {
         return resolve({
           valid: false,
           data: {
-            message: `Date & time Not related.`
+            message: `Date & Time Not related.`
+          }
+        })
+      }, 200)
+    })
+    const isTimeStartAfterTimeNow = value => new Promise((resolve) => {
+      setTimeout(() => {
+        // ถ้าวันที่เวลาสัมพันธ์กัน
+        if (this.checkTimeStartAfterTimeNow()) {
+          return resolve({
+            valid: true
+          })
+        }
+        return resolve({
+          valid: false,
+          data: {
+            message: `Please select after time now.`
           }
         })
       }, 200)
     })
     Validator.extend('overlaps', {
       validate: isOverlaps,
+      getMessage: (field, params, data) => data.message
+    })
+    Validator.extend('timeStartAfterTimeNow', {
+      validate: isTimeStartAfterTimeNow,
       getMessage: (field, params, data) => data.message
     })
   },
@@ -314,7 +346,6 @@ export default {
           // ถ้า selectData.dateStop มีค่า DatesStart จะเลือกวันที่ได้มากสุด คือวันที่เลิอก  dateStop
           this.allowedDatesStart.max = val.selectData.dateStop
         }
-        // this.allowedDatesStart.max = Moment(momenTime().tz('Asia/Bangkok')).add(2, 'months').format('YYYY-MM-DD')
       },
       deep: true
     }

@@ -6,6 +6,8 @@ import Register from '@/components/Register'
 import Booking from '@/components/Booking'
 import ReBooking from '@/components/ReBooking'
 import EditProfile from '@/components/EditProfile'
+import Feedback from '@/components/Feedback'
+
 Vue.use(Router)
 Vue.use(VeeValidate)
 
@@ -17,24 +19,29 @@ export default new Router({
       component: HelloWorld
     },
     {
-      path: '/register/:senderID/:status',
+      path: '/register/:status',
       name: 'Register',
       component: Register
     },
     {
-      path: '/booking/:senderID/:item',
+      path: '/booking/:item',
       name: 'Booking',
       component: Booking
     },
     {
-      path: '/rebooking/:senderID/:bookingPart',
+      path: '/rebooking/:bookingPart',
       name: 'ReBooking',
       component: ReBooking
     },
     {
-      path: '/editprofile/:senderID',
+      path: '/editProfile',
       name: 'EditProfile',
       component: EditProfile
+    },
+    {
+      path: '/feedback',
+      name: 'Feedback',
+      component: Feedback
     }
   ]
 })
