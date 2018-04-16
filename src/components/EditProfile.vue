@@ -1,13 +1,13 @@
 <template>
   <div class="EditProfile">
     <template>
-      <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+      <v-parallax height="650" src="/static/doc-images/vbanner.jpg" v-loading.fullscreen.lock= "loadingPage">
         <v-card color="grey lighten-4" flat>
           <v-card-text>
             <v-container fluid>
               <v-layout row>
                 <v-flex xs12>
-                  <div v-if="!editSuccess">
+                  <div v-if="mainPage === 'content'">
                     <form @submit.prevent="validateBeforeSubmit">
                       <h3>Edit Profile</h3>
                       <v-text-field
@@ -74,12 +74,9 @@
                       <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                     </form>
                   </div>
-                  <div v-else>
-                    <v-layout justify-space-around>
-                      <v-icon color="success" x-large>done</v-icon>
-                    </v-layout>
-                    <h3>Edit Profile success</h3><br>
-                    <h3>Please close page</h3>
+                  <div v-if="mainPage === 'error404'">
+                    <h1>Error 404<br>
+                    Page Not Found</h1>
                   </div>
                 </v-flex>
               </v-layout>
@@ -100,9 +97,10 @@ export default {
   name: 'EditProfile',
   data () {
     return {
+      loadingPage: true,
+      mainPage: '',
       userProfile: null,
       modaldate: false,
-      editSuccess: false,
       firstName: null,
       lastName: null,
       email: null,
@@ -111,6 +109,7 @@ export default {
       gender: null
     }
   },
+  props: ['appID'],
   methods: {
     validateBeforeSubmit () {
       this.$validator.validateAll().then((result) => {
@@ -130,15 +129,21 @@ export default {
         }
       })
     },
+    closeWeb (delay) {
+      this.loadingPage = false
+      setTimeout(() => {
+        MessengerExtensions.requestCloseBrowser() //eslint-disable-line
+      }, delay)
+    },
     postPost () {
       axios.post(`https://fitmcoworkingspace.me/editProfile`, {
         body: {
-          senderID: this.$route.params.senderID
+          senderID: this.threadContext[0].tid,
         }
       })
       .then(response => {
         if (response.data === 'success') {
-          this.editSuccess = true
+          closeWeb(0)
         }
       })
       .catch(error => {
@@ -158,6 +163,27 @@ export default {
     })
   },
   mounted () {
+    // window.extAsyncInit = function () {}
+    var vm = this
+    window.extAsyncInit = function () {
+    MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+    function success (threadContext) {
+      vm.threadContext = threadContext
+      vm.loadingPage = false
+      vm.mainPage = 'content'
+    },
+    function error (err) {
+      vm.threadContext = err
+      vm.loadingPage = false
+      vm.mainPage = 'error404'
+
+      // // fake data
+      // console.error(err)
+      // vm.loadingPage = false
+      // vm.mainPage = 'content'
+      // vm.threadContext = {tid: '1411911565515632'}
+    })
+    }
   },
   watch: {
   }
