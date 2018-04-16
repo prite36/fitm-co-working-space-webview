@@ -99,6 +99,7 @@ export default {
     return {
       loadingPage: true,
       mainPage: '',
+      threadContext: null,
       userProfile: null,
       modaldate: false,
       firstName: null,
@@ -125,6 +126,7 @@ export default {
             dateOfBirth: this.dateOfBirth,
             gender: this.gender
           })
+          this.loadingPage = true
           this.postPost()
         }
       })
@@ -138,7 +140,7 @@ export default {
     postPost () {
       axios.post(`https://fitmcoworkingspace.me/editProfile`, {
         body: {
-          senderID: this.threadContext[0].tid
+          senderID: this.threadContext.tid
         }
       })
       .then(response => {
@@ -154,36 +156,38 @@ export default {
   created () {
   },
   beforeMount () {
-    this.$bindAsObject('userProfile', firebase.database().ref('profile').child('guest').child(this.$route.params.senderID), null, () => {
-      this.firstName = this.userProfile.firstName
-      this.lastName = this.userProfile.lastName
-      this.phoneNumber = this.userProfile.phoneNumber
-      this.dateOfBirth = this.userProfile.dateOfBirth
-      this.gender = this.userProfile.gender
+    let getUserProfile = (userID) => {
+      this.$bindAsObject('userProfile', firebase.database().ref('profile').child('guest').child(userID), null, () => {
+        this.firstName = this.userProfile.firstName
+        this.lastName = this.userProfile.lastName
+        this.phoneNumber = this.userProfile.phoneNumber
+        this.dateOfBirth = this.userProfile.dateOfBirth
+        this.gender = this.userProfile.gender
+      })
+    }
+    let getSDK = new Promise((resolve, reject) => {
+      var vm = this
+      window.extAsyncInit = function () {
+        MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+        function success (threadContext) {
+          vm.threadContext = threadContext
+          vm.loadingPage = false
+          vm.mainPage = 'content'
+          resolve(threadContext.tid)
+        },
+        function error (err) {
+          vm.threadContext = err
+          vm.loadingPage = false
+          vm.mainPage = 'error404'
+          reject(err)
+        })
+      }
+    })
+    getSDK.then((userID) => {
+      getUserProfile(userID)
     })
   },
   mounted () {
-    // window.extAsyncInit = function () {}
-    var vm = this
-    window.extAsyncInit = function () {
-    MessengerExtensions.getContext(vm.appID, //eslint-disable-line
-    function success (threadContext) {
-      vm.threadContext = threadContext
-      vm.loadingPage = false
-      vm.mainPage = 'content'
-    },
-    function error (err) {
-      vm.threadContext = err
-      vm.loadingPage = false
-      vm.mainPage = 'error404'
-
-      // // fake data
-      // console.error(err)
-      // vm.loadingPage = false
-      // vm.mainPage = 'content'
-      // vm.threadContext = {tid: '1411911565515632'}
-    })
-    }
   },
   watch: {
   }
