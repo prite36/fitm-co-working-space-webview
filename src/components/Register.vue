@@ -82,6 +82,12 @@
                       <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                     </form>
                   </div>
+                  <div v-if="mainPage === 'Re_register'">
+                    <v-layout justify-space-around>
+                      <v-icon color="red darken-1" x-large>error</v-icon>
+                    </v-layout>
+                    <h1>You have already registered.</h1>
+                  </div>
                   <div v-if="mainPage === 'error404'">
                     <h1>Error 404<br>
                     Page Not Found</h1>
@@ -107,10 +113,12 @@ export default {
     return {
       loadingPage: true,
       mainPage: '',
+      threadContext: null,
       modaldate: false,
       allProfile: '',
       allState: '',
-      emailsDB: [],
+      userID_DB: [],
+      emails_DB: [],
       firstName: null,
       lastName: null,
       email: null,
@@ -128,6 +136,7 @@ export default {
           this.$nextTick().then(() => {
             this.$validator.reset()
           })
+          this.loadingPage = true
           this.postPost()
         }
       })
@@ -136,7 +145,7 @@ export default {
       axios.post(`https://fitmcoworkingspace.me/externalregister`, {
         body: {
           status: this.$route.params.status,
-          senderID: this.threadContext.tid,
+          senderID: this.threadContext[0].tid,
           firstName: this.firstName,
           lastName: this.lastName,
           email: this.email,
@@ -147,32 +156,67 @@ export default {
       })
       .then(response => {
         if (response.data === 'success') {
-          this.closeWeb()
+          this.closeWeb(0)
         }
       })
       .catch(error => {
         console.error(error)
       })
     },
-    closeWeb () {
+    closeWeb (delay) {
       this.loadingPage = false
-      MessengerExtensions.requestCloseBrowser(() => { //eslint-disable-line
-      }, (err) => {
-        console.error(err)
-      })
+      setTimeout(() => {
+        MessengerExtensions.requestCloseBrowser(() => {}, () => {}) //eslint-disable-line
+      }, delay)
     },
-    getData () {
-      this.$bindAsObject('allProfile', firebase.database().ref('profile'), null)
+    Re_registerCheck () {
+      // เอา tid จาก FB เช็คใน allState ว่า User คนนี้เคยสมัคสมาชิกแล้วหรือยัง
+      // ถ้า id ตรงกัน คืนค่า true
+      let findID = this.userID_DB.includes(this.threadContext[0].tid)
+      // ถ้า findID = true หมายความว่า User เคยสมัครสมาชิกไปแล้ว
+      if (findID) {
+        this.mainPage = 'Re_register'
+        this.closeWeb(2000)
+      } else {
+        this.mainPage = 'content'
+      }
+      this.loadingPage = false
+    },
+    getDataAndSDK () {
       this.$bindAsObject('allState', firebase.database().ref('state'), null)
+      let getAllProfile = new Promise(resolve => {
+        this.$bindAsObject('allProfile', firebase.database().ref('profile'), null, () => {
+          resolve()
+        })
+      })
+
+      let getSDK = new Promise((resolve, reject) => {
+        var vm = this
+        window.extAsyncInit = function () {
+          MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+          function success (threadContext) {
+            resolve(threadContext)
+          },
+          function error (err) {
+            reject(err)
+          })
+        }
+      })
+      Promise.all([getSDK, getAllProfile]).then(values => {
+        this.threadContext = values
+        this.Re_registerCheck()
+      }).catch(reason => {
+        this.threadContext = reason
+        this.loadingPage = false
+        this.mainPage = 'error404'
+      })
     }
   },
   created () {
-    // ดึงข้อมูล profile 1 ครั้ง
-    this.getData()
     // เช็ค Email
     const isUnique = value => new Promise((resolve) => {
       setTimeout(() => {
-        if (this.emailsDB.indexOf(value) === -1) {
+        if (this.emails_DB.indexOf(value) === -1) {
           return resolve({
             valid: true
           })
@@ -191,44 +235,26 @@ export default {
     })
   },
   mounted () {
-    var vm = this
-    window.extAsyncInit = function () {
-    MessengerExtensions.getContext(vm.appID, //eslint-disable-line
-    function success (threadContext) {
-      vm.threadContext = threadContext
-      vm.loadingPage = false
-      vm.mainPage = 'content'
-    },
-    function error (err) {
-      vm.threadContext = err
-      vm.loadingPage = false
-      vm.mainPage = 'error404'
-
-      // // fake data
-      // console.error(err)
-      // vm.loadingPage = false
-      // vm.mainPage = 'content'
-      // vm.threadContext = {tid: '1411911565515632'}
-    })
-    }
+    this.getDataAndSDK()
   },
   watch: {
     allProfile () {
       delete this.allProfile['.key']
-      // ดึงแค่ email เก็บใน emailsDB
+      // ดึงแค่ email เก็บใน emails_DB
       for (let status in this.allProfile) {
         for (let id in this.allProfile[status]) {
-          this.emailsDB.push(this.allProfile[status][id].email)
+          this.userID_DB.push(id)
+          this.emails_DB.push(this.allProfile[status][id].email)
         }
       }
     },
     allState () {
       delete this.allState['.key']
-      // ดึงแค่ email เก็บใน emailsDB
+      // ดึงแค่ email เก็บใน emails_DB
       for (let id in this.allState) {
         // ถ้า id นั้นเป็น object ที่มี   data:
         if (this.allState[id].data) {
-          this.emailsDB.push(this.allState[id].data.email)
+          this.emails_DB.push(this.allState[id].data.email)
         }
       }
     }
