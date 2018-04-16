@@ -143,7 +143,7 @@ export default {
       })
       .then(response => {
         if (response.data === 'success') {
-          closeWeb(0)
+          this.closeWeb(0)
         }
       })
       .catch(error => {
