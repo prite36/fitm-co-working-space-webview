@@ -138,7 +138,7 @@ export default {
     postPost () {
       axios.post(`https://fitmcoworkingspace.me/editProfile`, {
         body: {
-          senderID: this.threadContext[0].tid,
+          senderID: this.threadContext[0].tid
         }
       })
       .then(response => {
