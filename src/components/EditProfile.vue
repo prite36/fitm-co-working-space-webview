@@ -156,6 +156,21 @@ export default {
   created () {
   },
   beforeMount () {
+    var vm = this
+    window.extAsyncInit = function () {
+      MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+      function success (threadContext) {
+        vm.threadContext = threadContext
+        vm.loadingPage = false
+        vm.mainPage = 'content'
+        getUserProfile(threadContext.tid)
+      },
+      function error (err) {
+        vm.threadContext = err
+        vm.loadingPage = false
+        vm.mainPage = 'error404'
+      })
+    }
     let getUserProfile = (userID) => {
       this.$bindAsObject('userProfile', firebase.database().ref('profile').child('guest').child(userID), null, () => {
         this.firstName = this.userProfile.firstName
@@ -165,27 +180,6 @@ export default {
         this.gender = this.userProfile.gender
       })
     }
-    let getSDK = new Promise((resolve, reject) => {
-      var vm = this
-      window.extAsyncInit = function () {
-        MessengerExtensions.getContext(vm.appID, //eslint-disable-line
-        function success (threadContext) {
-          vm.threadContext = threadContext
-          vm.loadingPage = false
-          vm.mainPage = 'content'
-          resolve(threadContext.tid)
-        },
-        function error (err) {
-          vm.threadContext = err
-          vm.loadingPage = false
-          vm.mainPage = 'error404'
-          reject(err)
-        })
-      }
-    })
-    getSDK.then((userID) => {
-      getUserProfile(userID)
-    })
   },
   mounted () {
   },
