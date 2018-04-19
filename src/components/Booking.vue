@@ -1,13 +1,13 @@
 <template>
 <div class="Booking">
   <template>
-    <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+    <v-parallax height="650" src="/static/doc-images/vbanner.jpg" v-loading.fullscreen.lock= "loadingPage">
       <v-card color="grey lighten-4" flat>
         <v-card-text>
           <v-container fluid>
             <v-layout row>
               <v-flex xs12>
-                <div v-if="!bookingSuccess">
+                <div v-if="mainPage === 'content'">
                   <!-- /////////////////////////////////////////////////////// -->
                   <div v-if="data.selectData.selectType === null">
                     <h3>Please Select {{$route.params.item}}</h3><br>
@@ -89,12 +89,12 @@
                     </form>
                   </div>
                 </div>
-                <div  v-else>
-                 <v-layout justify-space-around>
-                   <v-icon color="success" x-large>done</v-icon>
-                 </v-layout>
-                 <h3>Booking  {{$route.params.item}} success</h3><br>
-                 <h3>Please close page</h3>
+                <div v-if="mainPage === 'error404'">
+                  <h1>Error 404<br>
+                  Page Not Found</h1>
+                </div>
+                <div v-if="mainPage === 'block'">
+                  <h1>you are blocked</h1>
                 </div>
               </v-flex>
             </v-layout>
@@ -121,7 +121,11 @@ export default {
   name: 'Register',
   data () {
     return {
+      loadingPage: true,
+      mainPage: '',
+      threadContext: null,
       items: null,
+      profiles: null,
       data: {
         selectData: {
           selectType: null,
@@ -142,7 +146,6 @@ export default {
       nameTypeItem: null,
       bookingData: null,
       nameTypeCanUse: [],
-      bookingSuccess: false,
       allowedDatesStart: {
         min: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD'),
         max: null
@@ -174,7 +177,7 @@ export default {
       oldVal: null
     }
   },
-
+  props: ['appID'],
   methods: {
     validateBeforeSubmit () {
       this.$validator.validateAll().then((result) => {
@@ -207,7 +210,7 @@ export default {
         id: key,
         childPart: `${this.$route.params.item}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
         nameTypeItem: this.nameTypeItem,
-        senderID: this.$route.params.senderID,
+        senderID: this.threadContext.tid,
         dateStart: this.data.selectData.dateStart,
         timeStart: this.data.selectData.timeStart,
         dateStop: this.data.selectData.dateStop,
@@ -275,10 +278,63 @@ export default {
       let inputStart = moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format)
       let query = inputStart.isSameOrAfter(momenTime().tz('Asia/Bangkok'))
       return query
+    },
+    closeWeb (delay) {
+      this.loadingPage = false
+      setTimeout(() => {
+        MessengerExtensions.requestCloseBrowser() //eslint-disable-line
+      }, delay)
+    },
+    getDataAndSDK () {
+      let getSDK = new Promise((resolve, reject) => {
+        var vm = this
+        window.extAsyncInit = function () {
+          MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+          function success (threadContext) {
+            resolve(threadContext)
+          },
+          function error (err) {
+            reject(err)
+          })
+        }
+      })
+      let getProfiles = new Promise((resolve, reject) => {
+        // let vm = this
+        this.$bindAsObject('profiles', firebase.database().ref('profile'), null, () => {
+          delete this.profiles['.key']
+          for (let status in this.profiles) {
+            if (this.profiles[status][this.threadContext.tid]) {
+              resolve(this.profiles[status][this.threadContext.tid].statusBlock)
+              break
+            }
+          }
+          reject(new Error('notFound'))
+        })
+      })
+      getSDK.then(values => {
+        this.threadContext = values
+        getProfiles.then(values => {
+          this.loadingPage = false
+          // user จะ booking ได้ก็ต่อเมื่อ values คืนค่าเป็น false
+          if (!values) {
+            this.mainPage = 'content'
+          } else {
+            this.mainPage = 'block'
+            this.closeWeb(2000)
+          }
+        }).catch(reason => {
+          console.log(reason)
+        })
+      }).catch(reason => {
+        this.threadContext = reason
+        this.loadingPage = false
+        this.mainPage = 'error404'
+      })
     }
   },
   mounted () {
     let vm = this
+    this.getDataAndSDK()
     this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item), null, () => { delete this.items['.key'] })
   },
   created () {
