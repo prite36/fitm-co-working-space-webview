@@ -89,12 +89,21 @@
                     </form>
                   </div>
                 </div>
+                <div v-if="mainPage === 'block'">
+                  <v-layout justify-space-around>
+                    <v-icon color="red darken-1" x-large>block</v-icon>
+                  </v-layout>
+                  <h1>you are blocked</h1>
+                </div>
+                <div v-if="mainPage === 'manyBookings'">
+                  <v-layout justify-space-around>
+                    <v-icon color="red darken-1" x-large>error</v-icon>
+                  </v-layout>
+                  <h1>You many bookings</h1>
+                </div>
                 <div v-if="mainPage === 'error404'">
                   <h1>Error 404<br>
                   Page Not Found</h1>
-                </div>
-                <div v-if="mainPage === 'block'">
-                  <h1>you are blocked</h1>
                 </div>
               </v-flex>
             </v-layout>
@@ -126,6 +135,8 @@ export default {
       threadContext: null,
       items: null,
       profiles: null,
+      bookings: null,
+      maxBooking: null,
       data: {
         selectData: {
           selectType: null,
@@ -218,7 +229,9 @@ export default {
         countPeople: this.countPeople,
         timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
       }
-      myRef.update(newData)
+      myRef.update(newData, (err) => {
+        if (!err) this.closeWeb(1000)
+      })
       this.postPost(newData)
     },
     checkNameTypeCanUse () {
@@ -304,26 +317,61 @@ export default {
           delete this.profiles['.key']
           for (let status in this.profiles) {
             if (this.profiles[status][this.threadContext.tid]) {
-              resolve(this.profiles[status][this.threadContext.tid].statusBlock)
+              /* Userที่ไม่ถูกblock  statusBlock จะมีค่าเป็น false
+               resolve ส่งค่า true หมายความว่าสามารถ booking ได้   reject ส่งค่า false คือ booking ไม่ได้ */
+              if (!this.profiles[status][this.threadContext.tid].statusBlock) resolve(true)
+              else reject(new Error(false))
               break
             }
           }
-          reject(new Error('notFound'))
+        })
+      })
+      let checkBooking = new Promise((resolve, reject) => {
+        this.$bindAsObject('maxBooking', firebase.database().ref('configSystem').child('maxBooking'), null, () => {
+          delete this.maxBooking['.key']
+          let countBooking = 0
+          this.$bindAsObject('bookings', firebase.database().ref('booking'), null, () => {
+            delete this.bookings['.key']
+            loop1: {// eslint-disable-line
+              for (let type in this.bookings) {
+                for (let nameType in this.bookings[type]) {
+                  for (let name in this.bookings[type][nameType]) {
+                    for (let id in this.bookings[type][nameType][name]) {
+                      if (this.bookings[type][nameType][name][id].senderID === this.threadContext.tid) {
+                        // ถ้าหาเจอแสดงว่าเป็น booking ของ user คนนี้ ให้ countBooking++
+                        countBooking++
+                        // ถ้าจำนวนการจองของ user คนนี้ >= จำนวนการจองมากสุดที่สามารถจองได้
+                        if (countBooking >= this.maxBooking['.value']) {
+                          // คืนค่า false  หมายความว่า ไม่สามารถจองได้
+                          resolve(false)
+                          break loop1 // eslint-disable-line
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            // คืนค่า true หมายความว่า สามารถจองได้
+            resolve(true)
+          })
         })
       })
       getSDK.then(values => {
         this.threadContext = values
-        getProfiles.then(values => {
+        Promise.all([getProfiles, checkBooking]).then(values => {
           this.loadingPage = false
-          // user จะ booking ได้ก็ต่อเมื่อ values คืนค่าเป็น false
-          if (!values) {
+          /* values คืนค่าเป็น array แล้วใช้ every เช็คค่าใน array ทีละตัว
+           ทุกตัวใน array ต้องเป็นจริง เช่น [true, true] ถึงจะเข้า เข้าเงื่อนไข if */
+          if (values.every(x => x)) {
             this.mainPage = 'content'
           } else {
-            this.mainPage = 'block'
+            this.mainPage = 'manyBookings'
             this.closeWeb(2000)
           }
         }).catch(reason => {
-          console.log(reason)
+          this.mainPage = 'block'
+          this.closeWeb(2000)
         })
       }).catch(reason => {
         this.threadContext = reason
