@@ -197,6 +197,7 @@ export default {
           this.$nextTick().then(() => {
             this.$validator.reset()
           })
+          this.loadingPage = true
           this.pushBookingData()
         }
       })
