@@ -18,7 +18,7 @@
                   <!-- /////////////////////////////////////////////////////// -->
                   <div class="page2" v-if="data.selectData.selectType !== null">
                     <h3>Please Booking {{data.selectData.selectType}}</h3><br>
-                    {{allowedDatesStart.max}}
+                    * You can Booking {{data.selectData.selectType}} limit {{configSystem[$route.params.item][data.selectData.selectType].timeOfMaxBooking}}  hours.
                     <form @submit.prevent="validateBeforeSubmit">
                       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
                         <v-text-field slot="activator" label="Date Start" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
@@ -59,7 +59,7 @@
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-dialog persistent v-model="data.modals.modalTimeStop" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="Time Stop" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required|overlaps'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Time Stop" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required|overlaps|maxTimeBooking'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
                         <v-time-picker format="24hr" v-model="data.selectData.timeStop" :allowed-hours="allowedTimesStop.hours" :allowed-minutes="allowedTimesStop.minutes" actions>
                           <template slot-scope="{ save, cancel }">
                           <v-card-actions>
@@ -74,7 +74,7 @@
                         <v-text-field label="Count People" name="count-people" prepend-icon="people" v-model="countPeople"
                           :error-messages="errors.collect('count people')"
                           v-validate="'required|numeric|max:3'"
-                          data-vv-name="count people"
+                          data-vv-name="count of person"
                         ></v-text-field>
                       </div>
                       <!-- /////////////////////////////////////////////////////// -->
@@ -136,7 +136,7 @@ export default {
       items: null,
       profiles: null,
       bookings: null,
-      maxBooking: null,
+      configSystem: null,
       data: {
         selectData: {
           selectType: null,
@@ -293,6 +293,15 @@ export default {
       let query = inputStart.isSameOrAfter(momenTime().tz('Asia/Bangkok'))
       return query
     },
+    checkMaxTimeBooking () {
+      // เวลาจองต้อง <= เวลาที่สามารถจองได้มากสุด
+      let vm = this
+      let format = 'YYYY-MM-DD HH:mm'
+      let inputStart = moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format)
+      let inputStop = moment(`${this.data.selectData.dateStop} ${this.data.selectData.timeStop}`, format)
+      // เอาเวลา inputStart กับ inputStop มาหาว่าห่างกันกี่ชั่วโมง และต้อง <= เวลาสูงสุดที่สามารถจองได้
+      return inputStop.diff(inputStart, 'hours', true) <= this.configSystem[vm.$route.params.item][this.data.selectData.selectType].timeOfMaxBooking
+    },
     closeWeb (delay) {
       this.loadingPage = false
       setTimeout(() => {
@@ -328,8 +337,8 @@ export default {
         })
       })
       let checkBooking = new Promise((resolve, reject) => {
-        this.$bindAsObject('maxBooking', firebase.database().ref('configSystem').child('maxBooking'), null, () => {
-          delete this.maxBooking['.key']
+        this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => {
+          delete this.configSystem['.key']
           let countBooking = 0
           this.$bindAsObject('bookings', firebase.database().ref('booking'), null, () => {
             delete this.bookings['.key']
@@ -342,7 +351,7 @@ export default {
                         // ถ้าหาเจอแสดงว่าเป็น booking ของ user คนนี้ ให้ countBooking++
                         countBooking++
                         // ถ้าจำนวนการจองของ user คนนี้ >= จำนวนการจองมากสุดที่สามารถจองได้
-                        if (countBooking >= this.maxBooking['.value']) {
+                        if (countBooking >= this.configSystem.countOfMaxBooking) {
                           // คืนค่า false  หมายความว่า ไม่สามารถจองได้
                           resolve(false)
                           break loop1 // eslint-disable-line
@@ -385,6 +394,25 @@ export default {
     let vm = this
     this.getDataAndSDK()
     this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item), null, () => { delete this.items['.key'] })
+    const maxTimeBooking = value => new Promise(resolve => {
+      setTimeout(() => {
+        if (this.checkMaxTimeBooking()) {
+          return resolve({
+            valid: true
+          })
+        }
+        return resolve({
+          valid: false,
+          data: {
+            message: `booking time too much.`
+          }
+        })
+      }, 200)
+    })
+    Validator.extend('maxTimeBooking', {
+      validate: maxTimeBooking,
+      getMessage: (field, params, data) => data.message
+    })
   },
   created () {
     const isOverlaps = value => new Promise((resolve) => {
