@@ -10,7 +10,7 @@
                 <div v-if="mainPage === 'content'">
                   <!-- /////////////////////////////////////////////////////// -->
                   <div v-if="data.selectData.selectType === null">
-                    <h3>Please Select {{$route.params.item}}</h3><br>
+                    <h3>Please Select {{paramsItem}}</h3><br>
                     <div class="" v-for="(item, key) in items">
                       <v-btn block color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn><br>
                     </div>
@@ -18,10 +18,11 @@
                   <!-- /////////////////////////////////////////////////////// -->
                   <div class="page2" v-if="data.selectData.selectType !== null">
                     <h3>Please Booking {{data.selectData.selectType}}</h3><br>
-                    * You can Booking {{data.selectData.selectType}} limit {{configSystem[$route.params.item][data.selectData.selectType].timeOfMaxBooking}}  hours.
-                    <div v-if="this.$route.params.item === 'meetingroom'">
-                    * This room max {{configSystem[$route.params.item][data.selectData.selectType].maxPerson}} persons.
-                    </div>
+                    * You can Booking {{data.selectData.selectType}} min {{configSystem[paramsItem].min}} minutes max {{configSystem[paramsItem].max / 60}}  hours.
+                    <p v-if="data.selectData.selectType === 'classRoom'">* This room max 50 persons.<p>
+                    <p v-if="data.selectData.selectType === 'largeRoom'">* This room max 20 persons.<p>
+                    <p v-if="data.selectData.selectType === 'mediumroom'">* This room max 10 persons.<p>
+                    <p v-if="data.selectData.selectType === 'smallRoom'">* This room max 5 persons.<p>
                     <form @submit.prevent="validateBeforeSubmit">
                       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
                         <v-text-field slot="activator" label="Date Start" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
@@ -37,7 +38,7 @@
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-dialog persistent v-model="data.modals.modalTimeStart" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="Time Start" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required|overlaps|timeStartAfterTimeNow|maxTimeBooking'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Time Start" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required|overlaps|timeStartAfterTimeNow|limitTimeBooking'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
                         <v-time-picker format="24hr" v-model="data.selectData.timeStart" :allowed-hours="allowedTimesStart.hours" :allowed-minutes="allowedTimesStart.minutes" actions>
                           <template slot-scope="{ save, cancel }">
                             <v-card-actions>
@@ -62,7 +63,7 @@
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-dialog persistent v-model="data.modals.modalTimeStop" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="Time Stop" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required|overlaps|maxTimeBooking'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Time Stop" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required|overlaps|limitTimeBooking'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
                         <v-time-picker format="24hr" v-model="data.selectData.timeStop" :allowed-hours="allowedTimesStop.hours" :allowed-minutes="allowedTimesStop.minutes" actions>
                           <template slot-scope="{ save, cancel }">
                           <v-card-actions>
@@ -148,6 +149,7 @@ export default {
         }
       },
       showNameMenu: true,
+      paramsItem: this.$route.params.item.replace(/room/g, 'Room'),
       nameTypeItem: null,
       bookingData: null,
       nameTypeCanUse: [],
@@ -210,11 +212,11 @@ export default {
       })
     },
     pushBookingData () {
-      let myRef = firebase.database().ref('booking/').child(this.$route.params.item).child(this.data.selectData.selectType).child(this.nameTypeItem).push()
+      let myRef = firebase.database().ref('booking/').child(this.paramsItem).child(this.data.selectData.selectType).child(this.nameTypeItem).push()
       let key = myRef.key
       var newData = {
         id: key,
-        childPart: `${this.$route.params.item}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
+        childPart: `${this.paramsItem}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
         nameTypeItem: this.nameTypeItem,
         senderID: this.threadContext.tid,
         dateStart: this.data.selectData.dateStart,
@@ -232,7 +234,7 @@ export default {
       let vm = this
       let nameTypeDontUse = []
       let nameTypeAll = Object.keys(this.items[this.data.selectData.selectType]) // ชื่อห้อง หรือ อุปกรณ์ทั้งหมด
-      this.$bindAsObject('bookingData', firebase.database().ref('booking').child(vm.$route.params.item).child(vm.data.selectData.selectType), null, () => {
+      this.$bindAsObject('bookingData', firebase.database().ref('booking').child(vm.paramsItem).child(vm.data.selectData.selectType), null, () => {
         delete this.bookingData['.key']
         // clear data
         this.nameTypeCanUse = []
@@ -286,14 +288,16 @@ export default {
       let query = inputStart.isSameOrAfter(momenTime().tz('Asia/Bangkok'))
       return query
     },
-    checkMaxTimeBooking () {
+    checkLimitTimeBooking (condition) {
       // เวลาจองต้อง <= เวลาที่สามารถจองได้มากสุด
       let vm = this
       let format = 'YYYY-MM-DD HH:mm'
       let inputStart = moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format)
       let inputStop = moment(`${this.data.selectData.dateStop} ${this.data.selectData.timeStop}`, format)
-      // เอาเวลา inputStart กับ inputStop มาหาว่าห่างกันกี่ชั่วโมง และต้อง <= เวลาสูงสุดที่สามารถจองได้
-      let result = inputStop.diff(inputStart, 'hours', true) <= this.configSystem[vm.$route.params.item][this.data.selectData.selectType].timeOfMaxBooking
+      // เอาเวลา inputStart กับ inputStop มาหาว่าห่างกันกี่ชั่วโมง และต้อง (<= || >=) เวลา ต่ำสุด สูงสุดที่สามารถจองได้
+      let result = null
+      if (condition === 'min') result = inputStop.diff(inputStart, 'minutes', true) >= this.configSystem[vm.paramsItem].min
+      if (condition === 'max') result = inputStop.diff(inputStart, 'minutes', true) <= this.configSystem[vm.paramsItem].max
       return (result || !this.data.selectData.timeStart || !this.data.selectData.timeStop)
     },
     closeWeb (delay) {
@@ -386,31 +390,39 @@ export default {
   },
   mounted () {
     let vm = this
-    this.getDataAndSDK()
-    this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item), null, () => { delete this.items['.key'] })
-    const maxTimeBooking = value => new Promise(resolve => {
+    // this.getDataAndSDK()
+    this.$bindAsObject('items', firebase.database().ref('items').child(vm.paramsItem), null, () => { delete this.items['.key'] })
+    const limitTimeBooking = value => new Promise(resolve => {
       setTimeout(() => {
-        if (this.checkMaxTimeBooking()) {
+        if (!this.checkLimitTimeBooking('min')) {
+          return resolve({
+            valid: false,
+            data: {
+              message: `booking time too little.`
+            }
+          })
+        } else if (!this.checkLimitTimeBooking('max')) {
+          return resolve({
+            valid: false,
+            data: {
+              message: `booking time too much.`
+            }
+          })
+        } else {
           return resolve({
             valid: true
           })
         }
-        return resolve({
-          valid: false,
-          data: {
-            message: `booking time too much.`
-          }
-        })
       }, 200)
     })
-    Validator.extend('maxTimeBooking', {
-      validate: maxTimeBooking,
+    Validator.extend('limitTimeBooking', {
+      validate: limitTimeBooking,
       getMessage: (field, params, data) => data.message
     })
     // test Data
-    // this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
-    // this.mainPage = 'content'
-    // this.loadingPage = false
+    this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
+    this.mainPage = 'content'
+    this.loadingPage = false
   },
   created () {
     const isOverlaps = value => new Promise((resolve) => {
