@@ -18,7 +18,10 @@
                   <!-- /////////////////////////////////////////////////////// -->
                   <div class="page2" v-if="data.selectData.selectType !== null">
                     <h3>Please Booking {{data.selectData.selectType}}</h3><br>
-                    {{allowedDatesStart.max}}
+                    * You can Booking {{data.selectData.selectType}} limit {{configSystem[$route.params.item][data.selectData.selectType].timeOfMaxBooking}}  hours.
+                    <div v-if="this.$route.params.item === 'meetingroom'">
+                    * This room max {{configSystem[$route.params.item][data.selectData.selectType].maxPerson}} persons.
+                    </div>
                     <form @submit.prevent="validateBeforeSubmit">
                       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
                         <v-text-field slot="activator" label="Date Start" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
@@ -34,7 +37,7 @@
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-dialog persistent v-model="data.modals.modalTimeStart" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="Time Start" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required|overlaps|timeStartAfterTimeNow'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Time Start" :error-messages="errors.collect('time start')" data-vv-name="time start" v-validate="'required|overlaps|timeStartAfterTimeNow|maxTimeBooking'" v-model="data.selectData.timeStart" prepend-icon="access_time" readonly></v-text-field>
                         <v-time-picker format="24hr" v-model="data.selectData.timeStart" :allowed-hours="allowedTimesStart.hours" :allowed-minutes="allowedTimesStart.minutes" actions>
                           <template slot-scope="{ save, cancel }">
                             <v-card-actions>
@@ -59,7 +62,7 @@
                       </v-dialog>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-dialog persistent v-model="data.modals.modalTimeStop" lazy full-width width="290px">
-                        <v-text-field slot="activator" label="Time Stop" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required|overlaps'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
+                        <v-text-field slot="activator" label="Time Stop" :error-messages="errors.collect('time stop')" data-vv-name="time stop" v-validate="'required|overlaps|maxTimeBooking'" v-model="data.selectData.timeStop" prepend-icon="access_time" readonly></v-text-field>
                         <v-time-picker format="24hr" v-model="data.selectData.timeStop" :allowed-hours="allowedTimesStop.hours" :allowed-minutes="allowedTimesStop.minutes" actions>
                           <template slot-scope="{ save, cancel }">
                           <v-card-actions>
@@ -69,14 +72,6 @@
                         </template>
                         </v-time-picker>
                       </v-dialog>
-                      <!-- /////////////////////////////////////////////////////// -->
-                      <div v-if="this.$route.params.item === 'meetingroom'" >
-                        <v-text-field label="Count People" name="count-people" prepend-icon="people" v-model="countPeople"
-                          :error-messages="errors.collect('count people')"
-                          v-validate="'required|numeric|max:3'"
-                          data-vv-name="count people"
-                        ></v-text-field>
-                      </div>
                       <!-- /////////////////////////////////////////////////////// -->
                       <v-select label="Name Type Item" item-value="text" prepend-icon="map" v-bind:items="nameTypeCanUse" v-model="nameTypeItem"
                         :error-messages="errors.collect('Name Type Item')"
@@ -89,12 +84,21 @@
                     </form>
                   </div>
                 </div>
+                <div v-if="mainPage === 'block'">
+                  <v-layout justify-space-around>
+                    <v-icon color="red darken-1" x-large>block</v-icon>
+                  </v-layout>
+                  <h1>you are blocked</h1>
+                </div>
+                <div v-if="mainPage === 'manyBookings'">
+                  <v-layout justify-space-around>
+                    <v-icon color="red darken-1" x-large>error</v-icon>
+                  </v-layout>
+                  <h1>You many bookings</h1>
+                </div>
                 <div v-if="mainPage === 'error404'">
                   <h1>Error 404<br>
                   Page Not Found</h1>
-                </div>
-                <div v-if="mainPage === 'block'">
-                  <h1>you are blocked</h1>
                 </div>
               </v-flex>
             </v-layout>
@@ -126,6 +130,8 @@ export default {
       threadContext: null,
       items: null,
       profiles: null,
+      bookings: null,
+      configSystem: null,
       data: {
         selectData: {
           selectType: null,
@@ -141,7 +147,6 @@ export default {
           modalTimeStop: false
         }
       },
-      countPeople: null,
       showNameMenu: true,
       nameTypeItem: null,
       bookingData: null,
@@ -186,6 +191,7 @@ export default {
           this.$nextTick().then(() => {
             this.$validator.reset()
           })
+          this.loadingPage = true
           this.pushBookingData()
         }
       })
@@ -215,10 +221,11 @@ export default {
         timeStart: this.data.selectData.timeStart,
         dateStop: this.data.selectData.dateStop,
         timeStop: this.data.selectData.timeStop,
-        countPeople: this.countPeople,
         timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
       }
-      myRef.update(newData)
+      myRef.update(newData, (err) => {
+        if (!err) this.closeWeb(1000)
+      })
       this.postPost(newData)
     },
     checkNameTypeCanUse () {
@@ -279,6 +286,16 @@ export default {
       let query = inputStart.isSameOrAfter(momenTime().tz('Asia/Bangkok'))
       return query
     },
+    checkMaxTimeBooking () {
+      // เวลาจองต้อง <= เวลาที่สามารถจองได้มากสุด
+      let vm = this
+      let format = 'YYYY-MM-DD HH:mm'
+      let inputStart = moment(`${this.data.selectData.dateStart} ${this.data.selectData.timeStart}`, format)
+      let inputStop = moment(`${this.data.selectData.dateStop} ${this.data.selectData.timeStop}`, format)
+      // เอาเวลา inputStart กับ inputStop มาหาว่าห่างกันกี่ชั่วโมง และต้อง <= เวลาสูงสุดที่สามารถจองได้
+      let result = inputStop.diff(inputStart, 'hours', true) <= this.configSystem[vm.$route.params.item][this.data.selectData.selectType].timeOfMaxBooking
+      return (result || !this.data.selectData.timeStart || !this.data.selectData.timeStop)
+    },
     closeWeb (delay) {
       this.loadingPage = false
       setTimeout(() => {
@@ -304,26 +321,61 @@ export default {
           delete this.profiles['.key']
           for (let status in this.profiles) {
             if (this.profiles[status][this.threadContext.tid]) {
-              resolve(this.profiles[status][this.threadContext.tid].statusBlock)
+              /* Userที่ไม่ถูกblock  statusBlock จะมีค่าเป็น false
+               resolve ส่งค่า true หมายความว่าสามารถ booking ได้   reject ส่งค่า false คือ booking ไม่ได้ */
+              if (!this.profiles[status][this.threadContext.tid].statusBlock) resolve(true)
+              else reject(new Error(false))
               break
             }
           }
-          reject(new Error('notFound'))
+        })
+      })
+      let checkBooking = new Promise((resolve, reject) => {
+        this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => {
+          delete this.configSystem['.key']
+          let countBooking = 0
+          this.$bindAsObject('bookings', firebase.database().ref('booking'), null, () => {
+            delete this.bookings['.key']
+            loop1: {// eslint-disable-line
+              for (let type in this.bookings) {
+                for (let nameType in this.bookings[type]) {
+                  for (let name in this.bookings[type][nameType]) {
+                    for (let id in this.bookings[type][nameType][name]) {
+                      if (this.bookings[type][nameType][name][id].senderID === this.threadContext.tid) {
+                        // ถ้าหาเจอแสดงว่าเป็น booking ของ user คนนี้ ให้ countBooking++
+                        countBooking++
+                        // ถ้าจำนวนการจองของ user คนนี้ >= จำนวนการจองมากสุดที่สามารถจองได้
+                        if (countBooking >= this.configSystem.countOfMaxBooking) {
+                          // คืนค่า false  หมายความว่า ไม่สามารถจองได้
+                          resolve(false)
+                          break loop1 // eslint-disable-line
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            // คืนค่า true หมายความว่า สามารถจองได้
+            resolve(true)
+          })
         })
       })
       getSDK.then(values => {
         this.threadContext = values
-        getProfiles.then(values => {
+        Promise.all([getProfiles, checkBooking]).then(values => {
           this.loadingPage = false
-          // user จะ booking ได้ก็ต่อเมื่อ values คืนค่าเป็น false
-          if (!values) {
+          /* values คืนค่าเป็น array แล้วใช้ every เช็คค่าใน array ทีละตัว
+           ทุกตัวใน array ต้องเป็นจริง เช่น [true, true] ถึงจะเข้า เข้าเงื่อนไข if */
+          if (values.every(x => x)) {
             this.mainPage = 'content'
           } else {
-            this.mainPage = 'block'
+            this.mainPage = 'manyBookings'
             this.closeWeb(2000)
           }
         }).catch(reason => {
-          console.log(reason)
+          this.mainPage = 'block'
+          this.closeWeb(2000)
         })
       }).catch(reason => {
         this.threadContext = reason
@@ -336,6 +388,29 @@ export default {
     let vm = this
     this.getDataAndSDK()
     this.$bindAsObject('items', firebase.database().ref('items').child(vm.$route.params.item), null, () => { delete this.items['.key'] })
+    const maxTimeBooking = value => new Promise(resolve => {
+      setTimeout(() => {
+        if (this.checkMaxTimeBooking()) {
+          return resolve({
+            valid: true
+          })
+        }
+        return resolve({
+          valid: false,
+          data: {
+            message: `booking time too much.`
+          }
+        })
+      }, 200)
+    })
+    Validator.extend('maxTimeBooking', {
+      validate: maxTimeBooking,
+      getMessage: (field, params, data) => data.message
+    })
+    // test Data
+    // this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
+    // this.mainPage = 'content'
+    // this.loadingPage = false
   },
   created () {
     const isOverlaps = value => new Promise((resolve) => {
