@@ -216,6 +216,7 @@ export default {
       let key = myRef.key
       var newData = {
         id: key,
+        status: 'pending',
         childPart: `${this.paramsItem}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
         nameTypeItem: this.nameTypeItem,
         senderID: this.threadContext.tid,
