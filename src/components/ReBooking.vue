@@ -1,13 +1,13 @@
 <template>
 <div class="Booking">
   <template>
-      <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+      <v-parallax height="650" src="/static/doc-images/vbanner.jpg" v-loading.fullscreen.lock= "loadingPage">
         <v-card color="grey lighten-4" flat>
           <v-card-text>
             <v-container fluid>
               <v-layout row>
                 <v-flex xs12>
-                  <div v-if="!reBookingSuccess">
+                  <div v-if="mainPage === 'content'">
                     <form @submit.prevent="validateBeforeSubmit">
                       <h3>Booking Continue</h3>
                       <!-- /////////////////////////////////////////////////////// -->
@@ -19,12 +19,9 @@
                       <v-btn block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                     </form>
                   </div>
-                  <div v-else>
-                    <v-layout justify-space-around>
-                      <v-icon color="success" x-large>done</v-icon>
-                    </v-layout>
-                    <h3>Booking Continue success</h3><br>
-                    <h3>Please close page</h3>
+                  <div v-if="mainPage === 'error404'">
+                    <h1>Error 404<br>
+                    Page Not Found</h1>
                   </div>
                 </v-flex>
               </v-layout>
@@ -50,6 +47,9 @@ export default {
   data () {
     return {
       valid: false,
+      loadingPage: true,
+      mainPage: '',
+      threadContext: null,
       dataBooking: null,
       minutes: null,
       reBookingSuccess: false,
@@ -58,6 +58,7 @@ export default {
       minutesOptions: []
     }
   },
+  props: ['appID'],
   methods: {
     validateBeforeSubmit () {
       this.$validator.validateAll().then((result) => {
@@ -73,14 +74,14 @@ export default {
     postPost (timeChange) {
       axios.post(`https://fitmcoworkingspace.me/rebookingSuccess`, {
         body: {
-          senderID: this.$route.params.senderID,
+          senderID: this.threadContext.tid,
           date: moment(timeChange).format('DD-MM-YYYY'),
           time: moment(timeChange).format('HH:mm')
         }
       })
       .then(response => {
         if (response.data === 'success') {
-          this.reBookingSuccess = true
+          this.closeWeb()
         }
       })
       .catch(error => {
@@ -100,6 +101,12 @@ export default {
       })
       // send data to server
       this.postPost(timeChange)
+    },
+    closeWeb (delay) {
+      this.loadingPage = false
+      setTimeout(() => {
+        MessengerExtensions.requestCloseBrowser() //eslint-disable-line
+      }, delay)
     }
   },
   watch: {
@@ -143,6 +150,20 @@ export default {
   },
   mounted () {
     this.$bindAsObject('dataBooking', firebase.database().ref('/booking').child(this.childPart[0]).child(this.childPart[1]).child(this.childPart[2]))
+    var vm = this
+    window.extAsyncInit = function () {
+    MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+    function success (threadContext) {
+      vm.threadContext = threadContext
+      vm.loadingPage = false
+      vm.mainPage = 'content'
+    },
+    function error (err) {
+      vm.threadContext = err
+      vm.loadingPage = false
+      vm.mainPage = 'error404'
+    })
+    }
   }
 }
 </script>
