@@ -2,9 +2,9 @@
   <div class="BookingTimeline">
     <div class="timeline">
       <p>Device Booking Timeline of {{dateNow}} </p>
-      <timeline :min="0.00" :max="24.00" :data="device"></timeline>
+      <timeline :min="0.00" :max="24.00" :data="filteredDevice"></timeline>
       <p>Room Booking Timeline  of {{dateNow}} </p>
-      <timeline :min="0.00" :max="24.00" :data="room"></timeline>
+      <timeline :min="0.00" :max="24.00" :data="filteredRoom"></timeline>
     </div>
   </div>
 </template>
@@ -12,13 +12,12 @@
 <script>
 import firebase from 'firebase'
 import momenTime from 'moment-timezone'
-import diff from 'lodash/difference'
+// import diff from 'lodash/difference'
 
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      mocdata: [['name1', '2018-02-18 00:02 GMT+7', '2018-02-18 24:00 GMT+7']],
       bookingDevice: null,
       bookingRoom: null,
       dateNow: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD'),
@@ -26,14 +25,14 @@ export default {
       roomBooked: [],
       allDevice: [],
       allRoom: [],
-      emptyItem: []
+      emptyItem: [],
+      filteredDevice: [],
+      filteredRoom: []
     }
   },
   methods: {
-  },
-  computed: {
     device () {
-      let filteredDevice = [[
+      this.filteredDevice = [[
         'เวลาการจอง 24 ชม.',
         this.dateNow + ' 00:00 GMT+7',
         this.dateNow + ' 24:00 GMT+7'
@@ -49,27 +48,33 @@ export default {
                   this.bookingDevice[key1][key2][key3].dateStart + ' ' + this.bookingDevice[key1][key2][key3].timeStart + ' GMT+7',
                   this.bookingDevice[key1][key2][key3].dateStop + ' ' + this.bookingDevice[key1][key2][key3].timeStop + ' GMT+7'
                 ]
-                filteredDevice.push(pack)
+                this.filteredDevice.push(pack)
               } else if (this.bookingDevice[key1][key2][key3].dateStop === this.dateNow) {
                 let pack = [
                   this.bookingDevice[key1][key2][key3].nameTypeItem,
                   this.dateNow + ' 00:00 GMT+7',
                   this.bookingDevice[key1][key2][key3].dateStop + ' ' + this.bookingDevice[key1][key2][key3].timeStop + ' GMT+7'
                 ]
-                filteredDevice.push(pack)
+                this.filteredDevice.push(pack)
               }
             }
           }
         }
       }
-      return filteredDevice
     },
     room () {
-      let filteredRoom = [[
-        'เวลาการจอง 24 ชม.',
-        this.dateNow + ' 00:00 GMT+7',
-        this.dateNow + ' 24:00 GMT+7'
-      ]]
+      this.filteredRoom = [
+        [
+          'เวลาการจอง 24 ชม.',
+          this.dateNow + ' 00:00 GMT+7',
+          this.dateNow + ' 24:00 GMT+7'
+        ]
+      ]
+      // this.allRoom.forEach(value => {
+      //   if (true) {
+      //
+      //   }
+      // })
       if (this.bookingRoom) {
         for (var key1 in this.bookingRoom) {
           for (var key2 in this.bookingRoom[key1]) {
@@ -81,44 +86,49 @@ export default {
                   this.bookingRoom[key1][key2][key3].dateStart + ' ' + this.bookingRoom[key1][key2][key3].timeStart + ' GMT+7',
                   this.bookingRoom[key1][key2][key3].dateStop + ' ' + this.bookingRoom[key1][key2][key3].timeStop + ' GMT+7'
                 ]
-                filteredRoom.push(pack)
+                this.filteredRoom.push(pack)
               } else if (this.bookingRoom[key1][key2][key3].dateStop === this.dateNow) {
                 let pack = [
                   this.bookingRoom[key1][key2][key3].nameTypeItem,
                   this.dateNow + ' 00:00 GMT+7',
                   this.bookingRoom[key1][key2][key3].dateStop + ' ' + this.bookingRoom[key1][key2][key3].timeStop + ' GMT+7'
                 ]
-                filteredRoom.push(pack)
+                this.filteredRoom.push(pack)
               }
             }
           }
         }
       }
-      return filteredRoom
     }
   },
   watch: {
     allDevice () {
-      console.log(diff(this.allDevice, this.deviceBooked))
+      // console.log(diff(this.allDevice, this.deviceBooked))
     },
     allRoom () {
-      console.log(diff(this.allRoom, this.roomBooked))
+      // console.log(diff(this.allRoom, this.roomBooked))
+    },
+    bookingDevice () {
+      delete this.bookingDevice['.key']
+      this.device()
+    },
+    bookingRoom () {
+      delete this.bookingRoom['.key']
+      this.room()
     }
   },
   mounted () {
-    this.$bindAsObject('bookingDevice', firebase.database().ref('booking/device'), null, () => { delete this.bookingDevice['.key'] })
-    this.$bindAsObject('bookingRoom', firebase.database().ref('booking/meetingRoom'), null, () => { delete this.bookingRoom['.key'] })
     this.$bindAsObject('listDevice', firebase.database().ref('items/device'), null, () => {
       delete this.listDevice['.key']
       this.allDevice = []
-      Object.values(this.listDevice).forEach(values => {
-        this.allDevice.push.apply(this.allDevice, Object.keys(values))
-      })
+      Object.values(this.listDevice).forEach(values => { this.allDevice.push.apply(this.allDevice, Object.keys(values)) })
+      this.$bindAsObject('bookingDevice', firebase.database().ref('booking/device'))
     })
     this.$bindAsObject('listRoom', firebase.database().ref('items/meetingRoom'), null, () => {
       delete this.listRoom['.key']
       this.allRoom = []
       Object.values(this.listRoom).forEach(values => { this.allRoom.push.apply(this.allRoom, Object.keys(values)) })
+      this.$bindAsObject('bookingRoom', firebase.database().ref('booking/meetingRoom'))
     })
   }
 }
