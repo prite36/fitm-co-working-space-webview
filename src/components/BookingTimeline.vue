@@ -12,7 +12,7 @@
 <script>
 import firebase from 'firebase'
 import momenTime from 'moment-timezone'
-// import diff from 'lodash/difference'
+import diff from 'lodash/difference'
 
 export default {
   name: 'HelloWorld',
@@ -70,11 +70,7 @@ export default {
           this.dateNow + ' 24:00 GMT+7'
         ]
       ]
-      // this.allRoom.forEach(value => {
-      //   if (true) {
-      //
-      //   }
-      // })
+      console.log('test' + this.allRoom)
       if (this.bookingRoom) {
         for (var key1 in this.bookingRoom) {
           for (var key2 in this.bookingRoom[key1]) {
@@ -103,10 +99,10 @@ export default {
   },
   watch: {
     allDevice () {
-      // console.log(diff(this.allDevice, this.deviceBooked))
+      console.log(diff(this.allDevice, this.deviceBooked))
     },
     allRoom () {
-      // console.log(diff(this.allRoom, this.roomBooked))
+      console.log(diff(this.allRoom, this.roomBooked))
     },
     bookingDevice () {
       delete this.bookingDevice['.key']
