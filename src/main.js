@@ -16,12 +16,11 @@ Vue.use(VueFire)
 Vue.config.productionTip = false
 Vue.use(VeeValidate)
 var config = {
-  apiKey: 'AIzaSyAE2rQQye4hlRpDqAWirvyaaCExiaWA8DY',
-  authDomain: 'fitm-coworkingspace.firebaseapp.com',
-  databaseURL: 'https://fitm-coworkingspace.firebaseio.com',
-  projectId: 'fitm-coworkingspace',
-  storageBucket: 'fitm-coworkingspace.appspot.com',
-  messagingSenderId: '181239315787'
+  apiKey: 'AIzaSyCe9ziSu83NGVd08_FnljSQj7dNCdtYS7w',
+  authDomain: 'fitm-coworking-space.firebaseapp.com',
+  databaseURL: 'https://fitm-coworking-space.firebaseio.com',
+  projectId: 'fitm-coworking-space',
+  messagingSenderId: '817891071163'
 }
 firebase.initializeApp(config)
 /* eslint-disable no-new */
