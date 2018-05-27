@@ -14,6 +14,8 @@
                     <div class="" v-for="(item, key) in items">
                       <v-btn block color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn><br>
                     </div>
+                    <v-btn block color="primary" @click="testpushBookingData()">test</v-btn>
+                    {{testData}}
                   </div>
                   <!-- /////////////////////////////////////////////////////// -->
                   <div class="page2" v-if="data.selectData.selectType !== null">
@@ -126,6 +128,7 @@ export default {
   name: 'Register',
   data () {
     return {
+      testData: null,
       loadingPage: true,
       mainPage: '',
       threadContext: null,
@@ -230,6 +233,26 @@ export default {
         if (!err) this.closeWeb(1000)
       })
       this.postPost(newData)
+    },
+    testpushBookingData () {
+      firebase.database().ref('booking/').child('device').child('3DPrinter').child('3DPrinter1').transaction(values => {
+        if (values) {
+          if (values.key1 === 32) {
+            return
+          }
+          values.key1++
+        }
+        return values
+      }, (error, committed, snapshot) => {
+        if (error) {
+          this.testData = `error ${error}`
+        } else if (!committed) {
+          // ถ้าข้อมูลซ้ำกันจะเข้าเงื่อนไขนี้
+          this.testData = `committed ${committed}`
+        } else {
+          this.testData = `balance = ${JSON.stringify(snapshot.val())}`
+        }
+      })
     },
     checkNameTypeCanUse () {
       let vm = this
@@ -391,7 +414,7 @@ export default {
   },
   mounted () {
     let vm = this
-    this.getDataAndSDK()
+    // this.getDataAndSDK()
     this.$bindAsObject('items', firebase.database().ref('items').child(vm.paramsItem), null, () => { delete this.items['.key'] })
     const limitTimeBooking = value => new Promise(resolve => {
       setTimeout(() => {
@@ -420,10 +443,10 @@ export default {
       validate: limitTimeBooking,
       getMessage: (field, params, data) => data.message
     })
-    // // test Data
-    // this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
-    // this.mainPage = 'content'
-    // this.loadingPage = false
+    // test Data
+    this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
+    this.mainPage = 'content'
+    this.loadingPage = false
   },
   created () {
     const isOverlaps = value => new Promise((resolve) => {
