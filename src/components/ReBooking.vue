@@ -1,13 +1,13 @@
 <template>
 <div class="Booking">
   <template>
-      <v-parallax height="650" src="/static/doc-images/vbanner.jpg">
+      <v-parallax height="650" src="/static/doc-images/vbanner.jpg" v-loading.fullscreen.lock= "loadingPage">
         <v-card color="grey lighten-4" flat>
           <v-card-text>
             <v-container fluid>
               <v-layout row>
                 <v-flex xs12>
-                  <div v-if="!reBookingSuccess">
+                  <div v-if="mainPage === 'content'">
                     <form @submit.prevent="validateBeforeSubmit">
                       <h3>Booking Continue</h3>
                       <!-- /////////////////////////////////////////////////////// -->
@@ -19,12 +19,15 @@
                       <v-btn block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                     </form>
                   </div>
-                  <div v-else>
+                  <div v-if="mainPage === 'notEditBooKing'">
                     <v-layout justify-space-around>
-                      <v-icon color="success" x-large>done</v-icon>
+                      <v-icon color="red darken-1" x-large>error</v-icon>
                     </v-layout>
-                    <h3>Booking Continue success</h3><br>
-                    <h3>Please close page</h3>
+                    <h1>you can't booking continue</h1>
+                  </div>
+                  <div v-if="mainPage === 'error404'">
+                    <h1>Error 404<br>
+                    Page Not Found</h1>
                   </div>
                 </v-flex>
               </v-layout>
@@ -50,6 +53,9 @@ export default {
   data () {
     return {
       valid: false,
+      loadingPage: true,
+      mainPage: '',
+      threadContext: null,
       dataBooking: null,
       minutes: null,
       reBookingSuccess: false,
@@ -58,6 +64,7 @@ export default {
       minutesOptions: []
     }
   },
+  props: ['appID'],
   methods: {
     validateBeforeSubmit () {
       this.$validator.validateAll().then((result) => {
@@ -73,14 +80,14 @@ export default {
     postPost (timeChange) {
       axios.post(`https://fitmcoworkingspace.me/rebookingSuccess`, {
         body: {
-          senderID: this.$route.params.senderID,
+          senderID: this.threadContext.tid,
           date: moment(timeChange).format('DD-MM-YYYY'),
           time: moment(timeChange).format('HH:mm')
         }
       })
       .then(response => {
         if (response.data === 'success') {
-          this.reBookingSuccess = true
+          this.closeWeb()
         }
       })
       .catch(error => {
@@ -96,16 +103,59 @@ export default {
       this.$firebaseRefs.dataBooking.child(this.childPart[3]).update({
         dateStop: moment(timeChange).format('YYYY-MM-DD'),
         timeStop: moment(timeChange).format('HH:mm'),
-        timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
+        bookingContinue: {
+          timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
+        }
       })
       // send data to server
       this.postPost(timeChange)
+    },
+    closeWeb (delay) {
+      this.loadingPage = false
+      setTimeout(() => {
+        MessengerExtensions.requestCloseBrowser() //eslint-disable-line
+      }, delay)
+    },
+    getDataAndSDK () {
+      let getSDK = new Promise((resolve, reject) => {
+        var vm = this
+        window.extAsyncInit = function () {
+          MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+          function success (threadContext) {
+            resolve(threadContext)
+          },
+          function error (err) {
+            reject(err)
+          })
+        }
+      })
+      let getdataBooking = new Promise((resolve, reject) => {
+        this.$bindAsObject('dataBooking', firebase.database().ref('/booking').child(this.childPart[0]).child(this.childPart[1]).child(this.childPart[2]), null, () => {
+          delete this.dataBooking['.key']
+          resolve()
+        })
+      })
+      Promise.all([getSDK, getdataBooking]).then(values => {
+        this.threadContext = values[0]
+        this.loadingPage = false
+        if (this.dataBooking[this.childPart[3]].bookingContinue === undefined) {
+          // ยังไม่เคยยืดเวลาจอง
+          this.mainPage = 'content'
+        } else {
+          // เคยยืดเวลาจอง
+          this.mainPage = 'notEditBooKing'
+          this.closeWeb(3000)
+        }
+      }).catch(reason => {
+        this.threadContext = reason
+        this.loadingPage = false
+        this.mainPage = 'error404'
+      })
     }
   },
   watch: {
     dataBooking: function () {
       let format = 'YYYY-MM-DD HH:mm'
-      delete this.dataBooking['.key']
       let getTime = `${this.dataBooking[this.childPart[3]].dateStop} ${this.dataBooking[this.childPart[3]].timeStop}`
       console.log(getTime)
       let dateTimeStop = moment(getTime, format)
@@ -142,7 +192,7 @@ export default {
     this.childPart = this.$route.params.bookingPart.split(':')
   },
   mounted () {
-    this.$bindAsObject('dataBooking', firebase.database().ref('/booking').child(this.childPart[0]).child(this.childPart[1]).child(this.childPart[2]))
+    this.getDataAndSDK()
   }
 }
 </script>
