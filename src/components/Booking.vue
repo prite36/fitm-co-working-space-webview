@@ -14,8 +14,6 @@
                     <div class="" v-for="(item, key) in items">
                       <v-btn block color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn><br>
                     </div>
-                    <v-btn block color="primary" @click="testpushBookingData()">test</v-btn>
-                    {{testData}}
                   </div>
                   <!-- /////////////////////////////////////////////////////// -->
                   <div class="page2" v-if="data.selectData.selectType !== null">
@@ -25,6 +23,12 @@
                     <p v-if="data.selectData.selectType === 'largeRoom'">* This room max 20 persons.<p>
                     <p v-if="data.selectData.selectType === 'mediumroom'">* This room max 10 persons.<p>
                     <p v-if="data.selectData.selectType === 'smallRoom'">* This room max 5 persons.<p>
+                    <v-alert type="error"
+                            class="alert"
+                            :value="errorBooking"
+                            transition="scale-transition">
+                            This range time is already booked.
+                    </v-alert>
                     <form @submit.prevent="validateBeforeSubmit">
                       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
                         <v-text-field slot="activator" label="Date Start" :error-messages="errors.collect('date start')" data-vv-name="date start" v-validate="'required'" v-model="data.selectData.dateStart" prepend-icon="event" color="success" readonly></v-text-field>
@@ -128,8 +132,8 @@ export default {
   name: 'Register',
   data () {
     return {
-      testData: null,
       loadingPage: true,
+      errorBooking: false,
       mainPage: '',
       threadContext: null,
       items: null,
@@ -215,40 +219,51 @@ export default {
       })
     },
     pushBookingData () {
-      let myRef = firebase.database().ref('booking/').child(this.paramsItem).child(this.data.selectData.selectType).child(this.nameTypeItem).push()
-      let key = myRef.key
-      var newData = {
-        id: key,
-        status: 'pending',
-        childPart: `${this.paramsItem}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
-        nameTypeItem: this.nameTypeItem,
-        senderID: this.threadContext.tid,
-        dateStart: this.data.selectData.dateStart,
-        timeStart: this.data.selectData.timeStart,
-        dateStop: this.data.selectData.dateStop,
-        timeStop: this.data.selectData.timeStop,
-        timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
-      }
-      myRef.update(newData, (err) => {
-        if (!err) this.closeWeb(1000)
-      })
-      this.postPost(newData)
-    },
-    testpushBookingData () {
-      firebase.database().ref('booking/').child('device').child('3DPrinter').child('3DPrinter1').transaction(values => {
-        if (values) {
-          if (values.key1 === 32) {
-            return
-          }
-          values.key1++
+      let pushData = (values = {}) => {
+        let key = firebase.database().ref('booking/').child(this.paramsItem).child(this.data.selectData.selectType).child(this.nameTypeItem).push().key
+        var newData = {
+          id: key,
+          status: 'pending',
+          childPart: `${this.paramsItem}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
+          nameTypeItem: this.nameTypeItem,
+          // senderID: this.threadContext.tid,
+          dateStart: this.data.selectData.dateStart,
+          timeStart: this.data.selectData.timeStart,
+          dateStop: this.data.selectData.dateStop,
+          timeStop: this.data.selectData.timeStop,
+          timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
         }
+        // this.postPost(newData)
+        values[key] = newData
         return values
+      }
+      firebase.database().ref('booking/').child(this.paramsItem).child(this.data.selectData.selectType).child(this.nameTypeItem).transaction(values => {
+        if (values) {
+          // เอาเวลาที่จะจองไปเช็คใน Booking ดูว่ามีข้อมูลที่เวลาจองชนกันไหม?
+          if (!Object.values(values).some(key => this.checkOverlaps(key))) {
+            // ถ้าเวลาไม่ชน push data
+            return pushData(values)
+          } else {
+            // ถ้าเวลาที่จะจองชนกัน return ค่าว่าง  committed = flase
+            return  //  eslint-disable-line
+          }
+        } else {
+          // ถ้าไม่มีข้อมูลใน firebase ไม่ต้องส่งค่าอะไรไป
+          return pushData()
+        }
       }, (error, committed, snapshot) => {
         if (error) {
           this.testData = `error ${error}`
         } else if (!committed) {
-          // ถ้าข้อมูลซ้ำกันจะเข้าเงื่อนไขนี้
+          // ถ้าเวลาที่จะจองชนกัน
           this.testData = `committed ${committed}`
+          this.loadingPage = false
+          this.errorBooking = true
+          this.nameTypeItem = null
+          this.data.selectData.dateStart = null
+          this.data.selectData.timeStart = null
+          this.data.selectData.dateStop = null
+          this.data.selectData.timeStop = null
         } else {
           this.testData = `balance = ${JSON.stringify(snapshot.val())}`
         }
@@ -534,5 +549,8 @@ export default {
 .label {
   font-size: 16px;
   text-align: left;
+}
+.alert {
+  font-size: 18px;
 }
 </style>
