@@ -209,7 +209,7 @@ export default {
       })
       .then(response => {
         if (response.data === 'success') {
-          this.closeWeb(1500)
+          // this.closeWeb(1500)
         }
       })
       .catch(error => {
@@ -217,9 +217,10 @@ export default {
       })
     },
     pushBookingData () {
+      var newData = {}
       let pushData = (values = {}) => {
         let key = firebase.database().ref('booking/').child(this.paramsItem).child(this.data.selectData.selectType).child(this.nameTypeItem).push().key
-        var newData = {
+        newData = {
           id: key,
           status: 'pending',
           childPart: `${this.paramsItem}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
@@ -231,7 +232,6 @@ export default {
           timeStop: this.data.selectData.timeStop,
           timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
         }
-        this.postPost(newData)
         values[key] = newData
         return values
       }
@@ -261,6 +261,9 @@ export default {
           this.data.selectData.timeStart = null
           this.data.selectData.dateStop = null
           this.data.selectData.timeStop = null
+        } else {
+          // ถ้า Booking transaction สำเร็จส่ง API
+          this.postPost(newData)
         }
       })
     },
