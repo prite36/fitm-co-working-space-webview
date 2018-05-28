@@ -209,7 +209,7 @@ export default {
       })
       .then(response => {
         if (response.data === 'success') {
-          // this.closeWeb(1500)
+          this.closeWeb(1500)
         }
       })
       .catch(error => {
