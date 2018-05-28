@@ -24,11 +24,8 @@
                       <p v-if="data.selectData.selectType === 'mediumroom'">* This room maximum <span class="red--text">10 persons.</span></p>
                       <p v-if="data.selectData.selectType === 'smallRoom'">* This room maximum <span class="red--text">5 persons.</span></p>
                     </div>
-                    <v-alert type="error"
-                            class="alert"
-                            :value="errorBooking"
-                            transition="scale-transition">
-                            This range time is already booked.
+                    <v-alert icon="warning" dismissible v-model="errorBooking">
+                      This range time is already booked. Please fill information again.
                     </v-alert>
                     <form @submit.prevent="validateBeforeSubmit">
                       <v-dialog persistent v-model="data.selectData.modalDateStart" lazy full-width width="290px">
@@ -166,7 +163,7 @@ export default {
         max: null
       },
       allowedDatesStop: {
-        min: null,
+        min: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD'),
         max: null
       },
       allowedTimesStart: {
@@ -212,7 +209,7 @@ export default {
       })
       .then(response => {
         if (response.data === 'success') {
-          this.bookingSuccess = true
+          this.closeWeb(1500)
         }
       })
       .catch(error => {
@@ -227,14 +224,14 @@ export default {
           status: 'pending',
           childPart: `${this.paramsItem}/${this.data.selectData.selectType}/${this.nameTypeItem}/${key}`,
           nameTypeItem: this.nameTypeItem,
-          // senderID: this.threadContext.tid,
+          senderID: this.threadContext.tid,
           dateStart: this.data.selectData.dateStart,
           timeStart: this.data.selectData.timeStart,
           dateStop: this.data.selectData.dateStop,
           timeStop: this.data.selectData.timeStop,
           timeStamp: momenTime().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm')
         }
-        // this.postPost(newData)
+        this.postPost(newData)
         values[key] = newData
         return values
       }
@@ -252,12 +249,11 @@ export default {
           // ถ้าไม่มีข้อมูลใน firebase ไม่ต้องส่งค่าอะไรไป
           return pushData()
         }
-      }, (error, committed, snapshot) => {
+      }, (error, committed) => {
         if (error) {
-          this.testData = `error ${error}`
+          console.error(error)
         } else if (!committed) {
           // ถ้าเวลาที่จะจองชนกัน
-          this.testData = `committed ${committed}`
           this.loadingPage = false
           this.errorBooking = true
           this.nameTypeItem = null
@@ -265,8 +261,6 @@ export default {
           this.data.selectData.timeStart = null
           this.data.selectData.dateStop = null
           this.data.selectData.timeStop = null
-        } else {
-          this.testData = `balance = ${JSON.stringify(snapshot.val())}`
         }
       })
     },
@@ -430,7 +424,7 @@ export default {
   },
   mounted () {
     let vm = this
-    // this.getDataAndSDK()
+    this.getDataAndSDK()
     this.$bindAsObject('items', firebase.database().ref('items').child(vm.paramsItem), null, () => { delete this.items['.key'] })
     const limitTimeBooking = value => new Promise(resolve => {
       setTimeout(() => {
@@ -459,10 +453,10 @@ export default {
       validate: limitTimeBooking,
       getMessage: (field, params, data) => data.message
     })
-    // test Data
-    this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
-    this.mainPage = 'content'
-    this.loadingPage = false
+    // // test Data
+    // this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
+    // this.mainPage = 'content'
+    // this.loadingPage = false
   },
   created () {
     const isOverlaps = value => new Promise((resolve) => {
@@ -535,8 +529,6 @@ export default {
   }
 }
 </script>
-
-
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped >
 .page2 {
