@@ -88,15 +88,18 @@
                     <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                   </form>
                 </div>
-                <div v-if="mainPage === 'Re_register'">
+                <div class="divalert" v-if="mainPage === 'Re_register'">
                   <v-layout justify-space-around>
                     <v-icon color="red darken-1" x-large>error</v-icon>
                   </v-layout>
-                  <h1>You have already registered.</h1>
+                  <h2>You have already registered.</h2>
                 </div>
-                <div v-if="mainPage === 'error404'">
-                  <h1>Error 404<br>
-                  Page Not Found</h1>
+                <div class="divalert" v-if="mainPage === 'error404'">
+                  <v-layout justify-space-around>
+                    <v-icon color="red darken-1" x-large>error</v-icon>
+                  </v-layout>
+                  <h2>Error 404<br>
+                  Page Not Found</h2>
                 </div>
               </v-flex>
             </v-layout>
@@ -273,6 +276,9 @@ export default {
 <style scoped>
 .register {
   background-color: #F5F5F5;
+}
+.divalert {
+  padding-top: 20%;
 }
 .field {
   margin-left: 2%;

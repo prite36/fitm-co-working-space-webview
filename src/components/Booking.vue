@@ -9,8 +9,7 @@
         <v-spacer></v-spacer>
       </v-toolbar>
     </v-tabs>
-    <v-parallax height="800" src="/static/doc-images/vbanner.jpg" v-loading.fullscreen.lock= "loadingPage">
-    <v-card color="grey lighten-4" flat>
+    <v-card class="btnchange" color="grey lighten-4" flat  v-loading.fullscreen.lock= "loadingPage">
       <v-card-text>
         <v-container fluid fill-height>
           <v-layout row>
@@ -19,7 +18,8 @@
                 <!-- /////////////////////////////////////////////////////// -->
                 <div v-if="data.selectData.selectType === null">
                   <div v-for="(item, key) in items">
-                    <v-btn block large color="primary" @click="data.selectData.selectType = key">{{key}}</v-btn><br>
+                    <br>
+                    <v-btn block large color="white" @click="data.selectData.selectType = key">{{key}}</v-btn><br>
                   </div>
                 </div>
                 <!-- /////////////////////////////////////////////////////// -->
@@ -96,21 +96,24 @@
                   </form>
                 </div>
               </div>
-              <div v-if="mainPage === 'block'">
+              <div class="divalert" v-if="mainPage === 'block'">
                 <v-layout justify-space-around>
                   <v-icon color="red darken-1" x-large>block</v-icon>
                 </v-layout>
-                <h1>you are blocked</h1>
+                <h2>you are blocked</h2>
               </div>
-              <div v-if="mainPage === 'manyBookings'">
+              <div class="divalert" v-if="mainPage === 'manyBookings'">
                 <v-layout justify-space-around>
                   <v-icon color="red darken-1" x-large>error</v-icon>
                 </v-layout>
-                <h1>You many bookings</h1>
+                <h2>You many bookings</h2>
               </div>
-              <div v-if="mainPage === 'error404'">
-                <h1>Error 404<br>
-                Page Not Found</h1>
+              <div class="divalert" v-if="mainPage === 'error404'">
+                <v-layout justify-space-around>
+                  <v-icon color="red darken-1" x-large>error</v-icon>
+                </v-layout>
+                <h2>Error 404<br>
+                Page Not Found</h2>
               </div>
             </v-flex>
           </v-layout>
@@ -118,7 +121,7 @@
       </v-card-text>
       <br>
     </v-card>
-  </v-parallax>
+  <!-- </v-parallax> -->
   </div>
 </template>
 
@@ -461,7 +464,7 @@ export default {
       validate: limitTimeBooking,
       getMessage: (field, params, data) => data.message
     })
-    // // fake Data
+    // fake Data
     // this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
     // this.mainPage = 'content'
     // this.loadingPage = false
@@ -540,6 +543,13 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped >
 .booking {
+  background-color: #F5F5F5;
+}
+.divalert {
+  padding-top: 20%;
+}
+.btnchange {
+  padding-top: 5%;
 }
 .page2 {
   padding-left: 2%;

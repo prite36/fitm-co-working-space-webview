@@ -26,15 +26,18 @@
                   <v-btn block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                 </form>
               </div>
-              <div v-if="mainPage === 'notEditBooKing'">
+              <div class="divalert" v-if="mainPage === 'notEditBooKing'">
                 <v-layout justify-space-around>
                   <v-icon color="red darken-1" x-large>error</v-icon>
                 </v-layout>
-                <h1>you can't booking continue</h1>
+                <h2>you can't booking continue</h2>
               </div>
-              <div v-if="mainPage === 'error404'">
-                <h1>Error 404<br>
-                Page Not Found</h1>
+              <div class="divalert" v-if="mainPage === 'error404'">
+                <v-layout justify-space-around>
+                  <v-icon color="red darken-1" x-large>error</v-icon>
+                </v-layout>
+                <h2>Error 404<br>
+                Page Not Found</h2>
               </div>
             </v-flex>
           </v-layout>
@@ -209,6 +212,9 @@ export default {
 <style scoped >
 .paddingcard {
   padding-top: 5%;
+}
+.divalert {
+  padding-top: 20%;
 }
 .rebooking {
   background-color: #F5F5F5;

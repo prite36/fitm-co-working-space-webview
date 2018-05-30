@@ -61,15 +61,18 @@
         <v-btn color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
         <br><br>
       </div>
-      <div v-if="mainPage === 'success'">
+      <div class="divalert" v-if="mainPage === 'success'">
         <v-layout justify-space-around>
           <v-icon color="success" x-large>done</v-icon>
         </v-layout>
         <h3>Thank you for feedback. We will improve this.</h3><br>
       </div>
-      <div v-if="mainPage === 'error404'">
-        <h1>Error 404<br>
-                  Page Not Found</h1>
+      <div class="divalert" v-if="mainPage === 'error404'">
+        <v-layout justify-space-around>
+          <v-icon color="red darken-1" x-large>error</v-icon>
+        </v-layout>
+        <h2>Error 404<br>
+                  Page Not Found</h2>
       </div>
     </v-card>
     <br>
@@ -178,6 +181,9 @@ export default {
 <style scoped>
 .feedback {
   background-color: #F5F5F5;
+}
+.divalert {
+  padding-top: 20%;
 }
 .field {
   margin-left: 2%;

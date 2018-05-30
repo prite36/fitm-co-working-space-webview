@@ -81,7 +81,10 @@
                   <v-btn  block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
                 </form>
               </div>
-              <div v-if="mainPage === 'error404'">
+              <div class="divalert" v-if="mainPage === 'error404'">
+                <v-layout justify-space-around>
+                  <v-icon color="red darken-1" x-large>error</v-icon>
+                </v-layout>
                 <h1>Error 404<br>
                 Page Not Found</h1>
               </div>
@@ -205,6 +208,9 @@ export default {
 }
 #inspire {
   padding-top: 3%;
+}
+.divalert {
+  padding-top: 20%;
 }
 .field {
   margin-left: 2%;
