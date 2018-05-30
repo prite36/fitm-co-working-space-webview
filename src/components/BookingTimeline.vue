@@ -1,10 +1,22 @@
 <template>
-  <div class="BookingTimeline">
+  <div class="bookingtimeline">
+    <v-tabs dark grow>
+  <v-toolbar color="primary" dark>
+    <v-btn icon>
+      <v-icon small>computer</v-icon>
+    </v-btn>
+    <h3 v-if="!swap">Device Booking Timeline of {{dateNow}}</h3>
+    <h3 v-if="swap">Room Booking Timeline  of {{dateNow}}</h3>
+    <v-spacer></v-spacer>
+  </v-toolbar>
+</v-tabs>
     <div class="timeline">
-      <p>Device Booking Timeline of {{dateNow}}</p>
-      <timeline :min="0.00" :max="24.00" :data="filteredDevices" :colors="colorsDevices" :height="devicesTLHeight"></timeline>
-      <p>Room Booking Timeline  of {{dateNow}}</p>
-      <timeline :min="0.00" :max="24.00" :data="filteredRooms" :colors="colorsRooms" :height="roomsTLHeight" ></timeline>
+      <!-- <v-menu transition="slide-x-transition" v-if="!swap"> -->
+        <timeline v-if="!swap" :min="0.00" :max="24.00" :data="filteredDevices" :colors="colorsDevices" :height="devicesTLHeight"></timeline>
+      <!-- </v-menu> -->
+      <!-- <v-menu transition="slide-x-transition" v-if="swap"> -->
+        <timeline v-if="swap" :min="0.00" :max="24.00" :data="filteredRooms" :colors="colorsRooms" :height="roomsTLHeight" ></timeline>
+      <!-- </v-menu> -->
     </div>
   </div>
 </template>
@@ -27,10 +39,17 @@ export default {
       filteredDevices: [],
       filteredRooms: [],
       colorsDevices: [],
-      colorsRooms: []
+      colorsRooms: [],
+      swap: false
     }
   },
   methods: {
+    setTimeSwap () {
+      setInterval(() => {
+        let vm = this
+        vm.swap = !vm.swap
+      }, 10000)
+    },
     queryTimeline (bookingData, list, filtered, colors) {
       let defaultColors = ['#3366CC', '#DC3912', '#FF9900', '#109618', '#990099', '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E', '#316395']
       filtered.push(
@@ -45,7 +64,7 @@ export default {
       for (var typeItem in list) {
         for (var nametypeItem in list[typeItem]) {
           if (bookingData[typeItem] && bookingData[typeItem][nametypeItem]) {
-            console.log(`pass ${nametypeItem}`)
+            // console.log(`pass ${nametypeItem}`)
             // ถ้า bookong ของ nametypeItem มีค่า
             Object.values(bookingData[typeItem][nametypeItem]).forEach(values => {
               const range1 = moment.range(
@@ -69,7 +88,7 @@ export default {
               }
             })
           } else {
-            console.log(`fail ${nametypeItem}`)
+            // console.log(`fail ${nametypeItem}`)
             // ถ้า ไม่มี booking ของ  nametypeItem นี้ ให้กำหนดเวลาอัติโนมัติ
             filtered.push([
               nametypeItem,
@@ -115,33 +134,24 @@ export default {
     devicesTLHeight () {
       return `${(this.colorsDevices.length * 50) + 41}px`
     }
+  },
+  created () {
+    this.setTimeSwap()
   }
 }
 </script>
 
 <style scoped>
+  .bookingtimeline {
+    background-color: #F5F5F5;
+  }
   .timeline {
     padding-left: 2%;
     padding-right: 2%;
-    padding-top: 2%;
+    padding-top: 10%;
   }
-  #chart-1 {
-    height: 100px;
-    padding-top: 0%;
-    padding-bottom: 0%;
-    height: 100px;
-  }
-  #chart-2 {
-    padding-top: 0%;
-    padding-bottom: 0%;
-    height: 100px;
-  }
-  #chart-8 {
-    padding-bottom: 0%;
-    height: auto;
-  }
-  .defs {
-    height: auto;
-    width: auto;
+  .bar {
+    padding-top: 1%;
+    background-color: #039BE5;
   }
 </style>
