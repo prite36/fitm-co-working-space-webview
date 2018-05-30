@@ -161,21 +161,21 @@ export default {
   created () {
   },
   beforeMount () {
-    // var vm = this
-    // window.extAsyncInit = function () {
-    //   MessengerExtensions.getContext(vm.appID, //eslint-disable-line
-    //   function success (threadContext) {
-    //     vm.threadContext = threadContext
-    //     vm.loadingPage = false
-    //     vm.mainPage = 'content'
-    //     getUserProfile(threadContext.tid)
-    //   },
-    //   function error (err) {
-    //     vm.threadContext = err
-    //     vm.loadingPage = false
-    //     vm.mainPage = 'error404'
-    //   })
-    // }
+    var vm = this
+    window.extAsyncInit = function () {
+      MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+      function success (threadContext) {
+        vm.threadContext = threadContext
+        vm.loadingPage = false
+        vm.mainPage = 'content'
+        getUserProfile(threadContext.tid)
+      },
+      function error (err) {
+        vm.threadContext = err
+        vm.loadingPage = false
+        vm.mainPage = 'error404'
+      })
+    }
     let getUserProfile = (userID) => {
       this.$bindAsObject('userProfile', firebase.database().ref('profile').child('guest').child(userID), null, () => {
         this.firstName = this.userProfile.firstName
@@ -185,11 +185,11 @@ export default {
         this.gender = this.userProfile.gender
       })
     }
-    // fake data
-    this.loadingPage = false
-    this.mainPage = 'content'
-    this.threadContext = {tid: '1411911565515632'}
-    getUserProfile(this.threadContext.tid)
+    // // fake data
+    // this.loadingPage = false
+    // this.mainPage = 'content'
+    // this.threadContext = {tid: '1411911565515632'}
+    // getUserProfile(this.threadContext.tid)
   },
   mounted () {
   },

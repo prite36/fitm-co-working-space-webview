@@ -155,8 +155,8 @@ export default {
         this.threadContext = reason
         this.loadingPage = false
         this.mainPage = 'error404'
-        // fake data
-        this.mainPage = 'content'
+        // // fake data
+        // this.mainPage = 'content'
       })
     }
   },

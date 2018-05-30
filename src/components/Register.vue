@@ -214,8 +214,8 @@ export default {
         this.loadingPage = false
         this.mainPage = 'error404'
 
-        // fake data
-        this.mainPage = 'content'
+        // // fake data
+        // this.mainPage = 'content'
       })
     }
   },

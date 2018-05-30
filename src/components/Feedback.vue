@@ -150,24 +150,24 @@ export default {
   created () {
   },
   mounted () {
-    // var vm = this
-    // window.extAsyncInit = function () {
-    // MessengerExtensions.getContext(vm.appID, //eslint-disable-line
-    //   function success (threadContext) {
-    //     vm.threadContext = threadContext
-    //     vm.loadingPage = false
-    //     vm.mainPage = 'content'
-    //   },
-    //   function error (err) {
-    //     vm.threadContext = err
-    //     vm.loadingPage = false
-    //     vm.mainPage = 'error404'
-    //   })
-    // }
-    // fake data
-    this.loadingPage = false
-    this.mainPage = 'content'
-    this.threadContext = {tid: '1411911565515632'}
+    var vm = this
+    window.extAsyncInit = function () {
+    MessengerExtensions.getContext(vm.appID, //eslint-disable-line
+      function success (threadContext) {
+        vm.threadContext = threadContext
+        vm.loadingPage = false
+        vm.mainPage = 'content'
+      },
+      function error (err) {
+        vm.threadContext = err
+        vm.loadingPage = false
+        vm.mainPage = 'error404'
+      })
+    }
+    // // fake data
+    // this.loadingPage = false
+    // this.mainPage = 'content'
+    // this.threadContext = {tid: '1411911565515632'}
   },
   watch: {
   }
