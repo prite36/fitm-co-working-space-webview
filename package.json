@@ -7,16 +7,25 @@
   "scripts": {
     "dev": "node build/dev-server.js",
     "start": "npm run dev",
-    "build": "node build/build.js",
+    "build": "node build/build.js & firebase deploy",
     "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
     "axios": "^0.17.0",
+    "chart.js": "^2.7.2",
+    "chartjs": "^0.3.24",
+    "chartkick": "^2.2.4",
+    "element-ui": "^2.3.7",
     "firebase": "^4.6.2",
-    "vee-validate": "^2.0.0-rc.21",
+    "lodash": "^4.17.4",
+    "moment-range": "^3.0.3",
+    "moment-timezone": "^0.5.14",
+    "vee-validate": "^2.0.0-rc.27",
     "vue": "^2.5.4",
+    "vue-chartkick": "^0.2.2",
     "vue-datetime": "^0.5.2",
     "vue-router": "^3.0.1",
+    "vue-star-rating": "^1.5.1",
     "vuefire": "^1.4.4",
     "vuetify": "^0.17.1"
   },

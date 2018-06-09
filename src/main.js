@@ -7,26 +7,34 @@ import router from './router'
 import VeeValidate from 'vee-validate'
 import Vuetify from 'vuetify'
 import VueFire from 'vuefire'
+import ElementUI from 'element-ui'
+import locale from 'element-ui/lib/locale/lang/en'
 
+Vue.use(ElementUI, { locale })
 Vue.use(Vuetify)
-Vue.use(VeeValidate)
 Vue.use(VueFire)
-
 Vue.config.productionTip = false
-
+Vue.use(VeeValidate)
 var config = {
-  apiKey: 'AIzaSyAE2rQQye4hlRpDqAWirvyaaCExiaWA8DY',
-  authDomain: 'fitm-coworkingspace.firebaseapp.com',
-  databaseURL: 'https://fitm-coworkingspace.firebaseio.com',
-  projectId: 'fitm-coworkingspace',
-  storageBucket: 'fitm-coworkingspace.appspot.com',
-  messagingSenderId: '181239315787'
+  apiKey: 'AIzaSyCe9ziSu83NGVd08_FnljSQj7dNCdtYS7w',
+  authDomain: 'fitm-coworking-space.firebaseapp.com',
+  databaseURL: 'https://fitm-coworking-space.firebaseio.com',
+  projectId: 'fitm-coworking-space',
+  messagingSenderId: '817891071163'
 }
 firebase.initializeApp(config)
-
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
+  created: function () {
+    (function (d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0] // eslint-disable-line
+      if (d.getElementById(id)) { return }
+      js = d.createElement(s); js.id = id
+      js.src = '//connect.facebook.com/en_US/messenger.Extensions.js'
+      fjs.parentNode.insertBefore(js, fjs)
+    }(document, 'script', 'Messenger'))
+  },
   router,
   template: '<App/>',
   components: { App }
