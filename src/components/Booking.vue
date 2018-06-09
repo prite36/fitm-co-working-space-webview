@@ -434,7 +434,7 @@ export default {
   },
   mounted () {
     let vm = this
-    // this.getDataAndSDK()
+    this.getDataAndSDK()
     this.$bindAsObject('items', firebase.database().ref('items').child(vm.paramsItem), null, () => { delete this.items['.key'] })
     const limitTimeBooking = value => new Promise(resolve => {
       setTimeout(() => {
@@ -463,10 +463,10 @@ export default {
       validate: limitTimeBooking,
       getMessage: (field, params, data) => data.message
     })
-    // fake Data
-    this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
-    this.mainPage = 'content'
-    this.loadingPage = false
+    // // fake Data
+    // this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
+    // this.mainPage = 'content'
+    // this.loadingPage = false
   },
   created () {
     const isOverlaps = value => new Promise((resolve) => {
