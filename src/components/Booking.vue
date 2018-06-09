@@ -25,11 +25,10 @@
                 <!-- /////////////////////////////////////////////////////// -->
                 <div class="page2" v-if="data.selectData.selectType !== null">
                   <div class="headline">Please Booking {{data.selectData.selectType}}</div><br>
-                  <div class="description" align-left>* You can booking {{data.selectData.selectType}} minimum <span class="red--text">{{configSystem[paramsItem].min}} minutes</span>, maximum <span class="red--text">{{configSystem[paramsItem].max / 60}}  hours.</span>
-                    <p v-if="data.selectData.selectType === 'classRoom'">* This room maximum <span class="red--text">50 persons.</span></p>
-                    <p v-if="data.selectData.selectType === 'largeRoom'">* This room maximum <span class="red--text">20 persons.</span></p>
-                    <p v-if="data.selectData.selectType === 'mediumroom'">* This room maximum <span class="red--text">10 persons.</span></p>
-                    <p v-if="data.selectData.selectType === 'smallRoom'">* This room maximum <span class="red--text">5 persons.</span></p>
+                  <div class="description" align-left>
+                    * You can booking {{data.selectData.selectType}} minimum <span class="red--text">{{configSystem[paramsItem].min}} minutes</span>, maximum <span class="red--text">{{configSystem[paramsItem].max / 60}}  hours.</span>
+                    <p>* This room maximum <span class="red--text">{{roomDescription.person}}</span> person.</p>
+                    <p>* Item in this room: {{roomDescription.items}}</p>
                   </div>
                   <v-alert icon="warning" dismissible v-model="errorBooking">
                     This range time is already booked. Please fill information again.
@@ -435,7 +434,7 @@ export default {
   },
   mounted () {
     let vm = this
-    this.getDataAndSDK()
+    // this.getDataAndSDK()
     this.$bindAsObject('items', firebase.database().ref('items').child(vm.paramsItem), null, () => { delete this.items['.key'] })
     const limitTimeBooking = value => new Promise(resolve => {
       setTimeout(() => {
@@ -465,9 +464,9 @@ export default {
       getMessage: (field, params, data) => data.message
     })
     // fake Data
-    // this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
-    // this.mainPage = 'content'
-    // this.loadingPage = false
+    this.$bindAsObject('configSystem', firebase.database().ref('configSystem'), null, () => { delete this.configSystem['.key'] })
+    this.mainPage = 'content'
+    this.loadingPage = false
   },
   created () {
     const isOverlaps = value => new Promise((resolve) => {
@@ -536,6 +535,11 @@ export default {
         }
       },
       deep: true
+    }
+  },
+  computed: {
+    roomDescription () {
+      return this.configSystem.meetingRoomDescription[this.data.selectData.selectType]
     }
   }
 }
