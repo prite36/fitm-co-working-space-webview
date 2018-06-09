@@ -1,43 +1,51 @@
 <template>
-<div class="Booking">
-  <template>
-      <v-parallax height="650" src="/static/doc-images/vbanner.jpg" v-loading.fullscreen.lock= "loadingPage">
-        <v-card color="grey lighten-4" flat>
-          <v-card-text>
-            <v-container fluid>
-              <v-layout row>
-                <v-flex xs12>
-                  <div v-if="mainPage === 'content'">
-                    <form @submit.prevent="validateBeforeSubmit">
-                      <h3>Booking Continue</h3>
-                      <!-- /////////////////////////////////////////////////////// -->
-                      <v-select label="Please Select Minute" prepend-icon="access_time" :items="minutesOptions"   v-model="selectedMinutes"
-                        :error-messages="errors.collect('Minute')"
-                        v-validate="'required'"
-                        data-vv-name="Minute"
-                      ></v-select><br><br>
-                      <v-btn block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
-                    </form>
-                  </div>
-                  <div v-if="mainPage === 'notEditBooKing'">
-                    <v-layout justify-space-around>
-                      <v-icon color="red darken-1" x-large>error</v-icon>
-                    </v-layout>
-                    <h1>you can't booking continue</h1>
-                  </div>
-                  <div v-if="mainPage === 'error404'">
-                    <h1>Error 404<br>
-                    Page Not Found</h1>
-                  </div>
-                </v-flex>
-              </v-layout>
-            </v-container>
-          </v-card-text>
-          <br>
-        </v-card>
-      </v-parallax>
-    </template>
-</div>
+  <div class="rebooking">
+    <v-tabs dark grow>
+      <v-toolbar color="primary" dark>
+        <v-btn icon>
+          <v-icon small>access_time</v-icon>
+        </v-btn>
+        Rebooking
+        <v-spacer></v-spacer>
+      </v-toolbar>
+    </v-tabs>
+    <v-card class="paddingcard" color="grey lighten-4" flat v-loading.fullscreen.lock= "loadingPage">
+      <v-card-text>
+        <v-container fluid>
+          <v-layout row>
+            <v-flex xs12>
+              <div v-if="mainPage === 'content'">
+                <form @submit.prevent="validateBeforeSubmit">
+                  <h3>Booking Continue</h3>
+                  <!-- /////////////////////////////////////////////////////// -->
+                  <v-select label="Please Select Minute" prepend-icon="access_time" :items="minutesOptions"   v-model="selectedMinutes"
+                    :error-messages="errors.collect('Minute')"
+                    v-validate="'required'"
+                    data-vv-name="Minute"
+                  ></v-select><br><br>
+                  <v-btn block color="primary" @click="validateBeforeSubmit()">Submit</v-btn>
+                </form>
+              </div>
+              <div class="divalert" v-if="mainPage === 'notEditBooKing'">
+                <v-layout justify-space-around>
+                  <v-icon color="red darken-1" x-large>error</v-icon>
+                </v-layout>
+                <h2>you can't booking continue</h2>
+              </div>
+              <div class="divalert" v-if="mainPage === 'error404'">
+                <v-layout justify-space-around>
+                  <v-icon color="red darken-1" x-large>error</v-icon>
+                </v-layout>
+                <h2>Error 404<br>
+                Page Not Found</h2>
+              </div>
+            </v-flex>
+          </v-layout>
+        </v-container>
+      </v-card-text>
+      <br>
+    </v-card>
+  </div>
 </template>
 
 <script>
@@ -150,6 +158,8 @@ export default {
         this.threadContext = reason
         this.loadingPage = false
         this.mainPage = 'error404'
+        // // fake data
+        // this.mainPage = 'content'
       })
     }
   },
@@ -200,6 +210,15 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped >
+.paddingcard {
+  padding-top: 5%;
+}
+.divalert {
+  padding-top: 20%;
+}
+.rebooking {
+  background-color: #F5F5F5;
+}
 .page2 {
   padding-left: 2%;
   padding-right: 2%;
